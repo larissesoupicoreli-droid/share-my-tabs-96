@@ -16,6 +16,7 @@ import { Route as ComprasRouteImport } from './routes/compras'
 import { Route as FaturaRouteImport } from './routes/fatura'
 import { Route as FuturoRouteImport } from './routes/futuro'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
+import { Route as RadixtestRouteImport } from './routes/radixtest'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
   path: '/meu-financeiro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RadixtestRoute = RadixtestRouteImport.update({
+  id: '/radixtest',
+  path: '/radixtest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/fatura': typeof FaturaRoute
   '/futuro': typeof FuturoRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/radixtest': typeof RadixtestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/fatura': typeof FaturaRoute
   '/futuro': typeof FuturoRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/radixtest': typeof RadixtestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/fatura': typeof FaturaRoute
   '/futuro': typeof FuturoRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/radixtest': typeof RadixtestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/fatura'
     | '/futuro'
     | '/meu-financeiro'
+    | '/radixtest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/fatura'
     | '/futuro'
     | '/meu-financeiro'
+    | '/radixtest'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/fatura'
     | '/futuro'
     | '/meu-financeiro'
+    | '/radixtest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   FaturaRoute: typeof FaturaRoute
   FuturoRoute: typeof FuturoRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
+  RadixtestRoute: typeof RadixtestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeuFinanceiroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/radixtest': {
+      id: '/radixtest'
+      path: '/radixtest'
+      fullPath: '/radixtest'
+      preLoaderRoute: typeof RadixtestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaturaRoute: FaturaRoute,
   FuturoRoute: FuturoRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
+  RadixtestRoute: RadixtestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
