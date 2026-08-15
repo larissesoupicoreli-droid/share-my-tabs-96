@@ -42,7 +42,7 @@ function EditarCartaoDialog({ cartao, responsaveis }: { cartao: CartaoRow; respo
   const salvar = useMutation({
     mutationFn: async () => {
       if (!form.nome.trim()) throw new Error("Informe o nome do cartão.");
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("cartoes")
         .update({
           nome: form.nome.trim(),
@@ -54,8 +54,11 @@ function EditarCartaoDialog({ cartao, responsaveis }: { cartao: CartaoRow; respo
           titular_id: form.titular_id || null,
           ativo: form.ativo,
         })
-        .eq("id", cartao.id);
+        .eq("id", cartao.id)
+        .select("id");
       if (error) throw new Error(error.message);
+      if (!data || data.length === 0)
+        throw new Error("Nada foi salvo: sua conta não tem permissão para editar cartões.");
     },
     onSuccess: () => {
       toast.success("Cartão atualizado.");
@@ -67,8 +70,14 @@ function EditarCartaoDialog({ cartao, responsaveis }: { cartao: CartaoRow; respo
 
   const excluir = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("cartoes").update({ ativo: false }).eq("id", cartao.id);
+      const { data, error } = await supabase
+        .from("cartoes")
+        .update({ ativo: false })
+        .eq("id", cartao.id)
+        .select("id");
       if (error) throw new Error(error.message);
+      if (!data || data.length === 0)
+        throw new Error("Nada foi salvo: sua conta não tem permissão para editar cartões.");
     },
     onSuccess: () => {
       toast.success("Cartão desativado.");
