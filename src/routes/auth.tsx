@@ -6,8 +6,6 @@ import { useSession } from "@/hooks/useSession";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -27,6 +25,7 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [busy, setBusy] = useState(false);
+  const [modo, setModo] = useState<"login" | "signup">("login");
 
   useEffect(() => {
     if (session) navigate({ to: "/" });
@@ -71,41 +70,43 @@ function AuthPage() {
       <div className="flex items-center justify-center p-6">
         <div className="surface-card w-full max-w-sm p-6">
           <h2 className="text-xl font-semibold">Acessar o sistema</h2>
-          <Tabs defaultValue="login" className="mt-4">
-            <TabsList className="w-full">
-              <TabsTrigger value="login" className="flex-1">Entrar</TabsTrigger>
-              <TabsTrigger value="signup" className="flex-1">Criar conta</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login" className="mt-4 grid gap-3">
-              <div className="grid gap-2">
-                <Label>E-mail</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label>Senha</Label>
-                <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
-              </div>
-              <Button onClick={entrar} disabled={busy}>Entrar</Button>
-            </TabsContent>
-            <TabsContent value="signup" className="mt-4 grid gap-3">
+          <div className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-secondary p-1 text-sm">
+            {(["login", "signup"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setModo(m)}
+                className={`rounded-md px-3 py-1.5 transition-colors ${modo === m ? "bg-card font-medium shadow-sm" : "text-muted-foreground"}`}
+              >
+                {m === "login" ? "Entrar" : "Criar conta"}
+              </button>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-3">
+            {modo === "signup" ? (
               <div className="grid gap-2">
                 <Label>Nome</Label>
                 <Input value={nome} onChange={(e) => setNome(e.target.value)} />
               </div>
-              <div className="grid gap-2">
-                <Label>E-mail</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label>Senha</Label>
-                <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
-              </div>
-              <Button onClick={cadastrar} disabled={busy}>Criar conta</Button>
-              <p className="text-xs text-muted-foreground">
-                A primeira conta criada vira administradora do sistema.
-              </p>
-            </TabsContent>
-          </Tabs>
+            ) : null}
+            <div className="grid gap-2">
+              <Label>E-mail</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label>Senha</Label>
+              <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
+            </div>
+            {modo === "login" ? (
+              <Button onClick={entrar} disabled={busy}>Entrar</Button>
+            ) : (
+              <>
+                <Button onClick={cadastrar} disabled={busy}>Criar conta</Button>
+                <p className="text-xs text-muted-foreground">
+                  A primeira conta criada vira administradora do sistema.
+                </p>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
