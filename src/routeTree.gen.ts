@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FaturaRouteImport } from './routes/fatura'
+import { Route as FuturoRouteImport } from './routes/futuro'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const FaturaRoute = FaturaRouteImport.update({
   path: '/fatura',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FuturoRoute = FuturoRouteImport.update({
+  id: '/futuro',
+  path: '/futuro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/fatura': typeof FaturaRoute
+  '/futuro': typeof FuturoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/fatura': typeof FaturaRoute
+  '/futuro': typeof FuturoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/fatura': typeof FaturaRoute
+  '/futuro': typeof FuturoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/fatura'
+  fullPaths: '/' | '/auth' | '/fatura' | '/futuro'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/fatura'
-  id: '__root__' | '/' | '/auth' | '/fatura'
+  to: '/' | '/auth' | '/fatura' | '/futuro'
+  id: '__root__' | '/' | '/auth' | '/fatura' | '/futuro'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   FaturaRoute: typeof FaturaRoute
+  FuturoRoute: typeof FuturoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaturaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/futuro': {
+      id: '/futuro'
+      path: '/futuro'
+      fullPath: '/futuro'
+      preLoaderRoute: typeof FuturoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   FaturaRoute: FaturaRoute,
+  FuturoRoute: FuturoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
