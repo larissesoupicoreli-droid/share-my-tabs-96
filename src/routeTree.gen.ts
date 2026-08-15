@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CartoesRouteImport } from './routes/cartoes'
+import { Route as ComprasRouteImport } from './routes/compras'
 import { Route as FaturaRouteImport } from './routes/fatura'
 import { Route as FuturoRouteImport } from './routes/futuro'
 
@@ -22,6 +24,16 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartoesRoute = CartoesRouteImport.update({
+  id: '/cartoes',
+  path: '/cartoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComprasRoute = ComprasRouteImport.update({
+  id: '/compras',
+  path: '/compras',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaturaRoute = FaturaRouteImport.update({
@@ -38,12 +50,16 @@ const FuturoRoute = FuturoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cartoes': typeof CartoesRoute
+  '/compras': typeof ComprasRoute
   '/fatura': typeof FaturaRoute
   '/futuro': typeof FuturoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cartoes': typeof CartoesRoute
+  '/compras': typeof ComprasRoute
   '/fatura': typeof FaturaRoute
   '/futuro': typeof FuturoRoute
 }
@@ -51,20 +67,25 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cartoes': typeof CartoesRoute
+  '/compras': typeof ComprasRoute
   '/fatura': typeof FaturaRoute
   '/futuro': typeof FuturoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/fatura' | '/futuro'
+  fullPaths: '/' | '/auth' | '/cartoes' | '/compras' | '/fatura' | '/futuro'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/fatura' | '/futuro'
-  id: '__root__' | '/' | '/auth' | '/fatura' | '/futuro'
+  to: '/' | '/auth' | '/cartoes' | '/compras' | '/fatura' | '/futuro'
+  id:
+    '__root__' | '/' | '/auth' | '/cartoes' | '/compras' | '/fatura' | '/futuro'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CartoesRoute: typeof CartoesRoute
+  ComprasRoute: typeof ComprasRoute
   FaturaRoute: typeof FaturaRoute
   FuturoRoute: typeof FuturoRoute
 }
@@ -83,6 +104,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cartoes': {
+      id: '/cartoes'
+      path: '/cartoes'
+      fullPath: '/cartoes'
+      preLoaderRoute: typeof CartoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compras': {
+      id: '/compras'
+      path: '/compras'
+      fullPath: '/compras'
+      preLoaderRoute: typeof ComprasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fatura': {
@@ -105,6 +140,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CartoesRoute: CartoesRoute,
+  ComprasRoute: ComprasRoute,
   FaturaRoute: FaturaRoute,
   FuturoRoute: FuturoRoute,
 }
