@@ -84,17 +84,17 @@ function AuthPage() {
           <div className="mt-4 grid gap-3">
             {modo === "signup" ? (
               <div className="grid gap-2">
-                <Label>Nome</Label>
-                <Input value={nome} onChange={(e) => setNome(e.target.value)} />
+                <Label htmlFor="nome">Nome</Label>
+                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} />
               </div>
             ) : null}
             <div className="grid gap-2">
-              <Label>E-mail</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Label htmlFor="email">E-mail</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label>Senha</Label>
-              <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
+              <Label htmlFor="senha">Senha</Label>
+              <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
             </div>
             {modo === "login" ? (
               <Button onClick={entrar} disabled={busy}>Entrar</Button>
