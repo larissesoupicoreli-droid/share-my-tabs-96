@@ -10,6 +10,131 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+
+type CartaoRow = {
+  id: string;
+  nome: string;
+  banco: string | null;
+  ultimos4: string | null;
+  limite: number | string;
+  dia_fechamento: number;
+  dia_vencimento: number;
+  ativo: boolean;
+  titular_id: string | null;
+};
+
+function EditarCartaoDialog({ cartao, responsaveis }: { cartao: CartaoRow; responsaveis: { id: string; nome: string }[] }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    nome: cartao.nome,
+    banco: cartao.banco ?? "",
+    ultimos4: cartao.ultimos4 ?? "",
+    limite: String(cartao.limite ?? ""),
+    dia_fechamento: String(cartao.dia_fechamento),
+    dia_vencimento: String(cartao.dia_vencimento),
+    titular_id: cartao.titular_id ?? "",
+    ativo: cartao.ativo,
+  });
+
+  const salvar = useMutation({
+    mutationFn: async () => {
+      if (!form.nome.trim()) throw new Error("Informe o nome do cartão.");
+      const { error } = await supabase
+        .from("cartoes")
+        .update({
+          nome: form.nome.trim(),
+          banco: form.banco || null,
+          ultimos4: form.ultimos4 || null,
+          limite: Number(form.limite.replace(",", ".")) || 0,
+          dia_fechamento: Number(form.dia_fechamento) || 1,
+          dia_vencimento: Number(form.dia_vencimento) || 10,
+          titular_id: form.titular_id || null,
+          ativo: form.ativo,
+        })
+        .eq("id", cartao.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Cartão atualizado.");
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["cartoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const excluir = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("cartoes").update({ ativo: false }).eq("id", cartao.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Cartão desativado.");
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["cartoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const campos = [
+    ["nome", "Nome"],
+    ["banco", "Banco"],
+    ["ultimos4", "Últimos 4 dígitos"],
+    ["limite", "Limite (R$)"],
+    ["dia_fechamento", "Dia de fechamento"],
+    ["dia_vencimento", "Dia de vencimento"],
+  ] as const;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="mt-4 w-full">Editar cartão</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Editar {cartao.nome}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {campos.map(([key, label]) => (
+            <div key={key} className="grid gap-2">
+              <Label htmlFor={`${cartao.id}-${key}`}>{label}</Label>
+              <Input
+                id={`${cartao.id}-${key}`}
+                value={form[key]}
+                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+              />
+            </div>
+          ))}
+          <div className="grid gap-2">
+            <Label>Titular do cartão</Label>
+            <Select value={form.titular_id} onValueChange={(v) => setForm((f) => ({ ...f, titular_id: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {responsaveis.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between gap-2 sm:col-span-2">
+            <Label htmlFor={`${cartao.id}-ativo`}>Cartão ativo</Label>
+            <Switch
+              id={`${cartao.id}-ativo`}
+              checked={form.ativo}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, ativo: v }))}
+            />
+          </div>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Button onClick={() => salvar.mutate()} disabled={salvar.isPending}>Salvar alterações</Button>
+          <Button variant="ghost" onClick={() => excluir.mutate()} disabled={excluir.isPending}>Desativar cartão</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export const Route = createFileRoute("/cartoes")({
   head: () => ({
@@ -59,15 +184,6 @@ function CartoesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const atualizarTitular = useMutation({
-    mutationFn: async ({ id, titular_id }: { id: string; titular_id: string }) => {
-      const { error } = await supabase.from("cartoes").update({ titular_id }).eq("id", id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cartoes"] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   return (
     <AppShell title="Cartões" subtitle="O titular do cartão é apenas quem responde pela fatura no banco">
       <div className="grid gap-4 lg:grid-cols-3">
@@ -83,17 +199,10 @@ function CartoesPage() {
               <span>Vence dia {c.dia_vencimento}</span>
               <span className="text-right">{c.ativo ? "Ativo" : "Inativo"}</span>
             </div>
-            <div className="mt-4 grid gap-2">
-              <Label className="text-xs">Titular do cartão</Label>
-              <Select value={c.titular_id ?? ""} onValueChange={(v) => atualizarTitular.mutate({ id: c.id, titular_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {responsaveis.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Titular: {responsaveis.find((r) => r.id === c.titular_id)?.nome ?? "não definido"}
+            </p>
+            <EditarCartaoDialog cartao={c as CartaoRow} responsaveis={responsaveis} />
           </div>
         ))}
       </div>
