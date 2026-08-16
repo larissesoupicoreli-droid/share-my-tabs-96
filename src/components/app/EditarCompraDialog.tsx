@@ -130,7 +130,7 @@ export function EditarCompraDialog({
             <Select value={cartaoId} onValueChange={setCartaoId}>
               <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
               <SelectContent>
-                {cartoes.map((c) => (
+                {cartoes.filter((c) => c.ativo || c.id === compra.cartao_id).map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                 ))}
               </SelectContent>

@@ -61,9 +61,16 @@ function ComprasPage() {
   const excluir = useMutation({
     mutationFn: async ({ id, tudo }: { id: string; tudo: boolean }) => {
       const parcela = parcelas.find((p) => p.id === id)!;
-      const { error } = tudo
-        ? await supabase.from("compras").delete().eq("id", parcela.compra_id)
-        : await supabase.from("parcelas").delete().eq("id", id);
+      if (!tudo) {
+        const { error } = await supabase.from("parcelas").delete().eq("id", id);
+        if (error) throw new Error(error.message);
+        return;
+      }
+      const { error: rateioErr } = await supabase.from("rateios").delete().eq("compra_id", parcela.compra_id);
+      if (rateioErr) throw new Error(rateioErr.message);
+      const { error: parcelasErr } = await supabase.from("parcelas").delete().eq("compra_id", parcela.compra_id);
+      if (parcelasErr) throw new Error(parcelasErr.message);
+      const { error } = await supabase.from("compras").delete().eq("id", parcela.compra_id);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
