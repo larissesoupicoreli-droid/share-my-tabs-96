@@ -111,6 +111,9 @@ function ComprasPage() {
               const cartao = cartoes.find((c) => c.id === p.cartao_id);
               const rateio = rateios.filter((r) => r.compra_id === p.compra_id);
               const futuras = parcelas.filter((x) => x.compra_id === p.compra_id && x.mes_referencia > mes).length;
+              const primeiroMes = parcelas
+                .filter((x) => x.compra_id === p.compra_id)
+                .reduce((min, x) => (min && min <= x.mes_referencia ? min : x.mes_referencia), "");
               return (
                 <TableRow key={p.id} className={p.status === "cancelado" ? "opacity-50" : ""}>
                   <TableCell>
@@ -152,7 +155,7 @@ function ComprasPage() {
                           categorias={categorias}
                           responsaveis={responsaveis}
                           temRateio={rateio.length > 0}
-                          mesReferencia={p.mes_referencia}
+                          mesReferencia={primeiroMes || p.mes_referencia}
                         />
                       ) : null}
                       <Button
