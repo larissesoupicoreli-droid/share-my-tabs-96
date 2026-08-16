@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
+import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
 import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery } from "@/lib/data";
 import { currentMonthKey, dateLabel, money } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ function ComprasPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Descrição</TableHead>
+              <TableHead>Data da compra</TableHead>
               <TableHead>Cartão / titular</TableHead>
               <TableHead>Responsável</TableHead>
               <TableHead>Categoria</TableHead>
@@ -114,9 +116,10 @@ function ComprasPage() {
                   <TableCell>
                     <p className="font-medium">{compra?.descricao ?? "—"}</p>
                     <p className="text-xs text-muted-foreground">
-                      {compra ? dateLabel(compra.data_compra) : ""} · {compra?.tipo}
+                      {compra?.tipo}
                     </p>
                   </TableCell>
+                  <TableCell className="num">{compra ? dateLabel(compra.data_compra) : "—"}</TableCell>
                   <TableCell>
                     <p>{cartao?.nome}</p>
                     <p className="text-xs text-muted-foreground">titular {nome(cartao?.titular_id) ?? "—"}</p>
@@ -142,6 +145,15 @@ function ComprasPage() {
                   <TableCell className="num text-right font-medium">{money(Number(p.valor))}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
+                      {compra ? (
+                        <EditarCompraDialog
+                          compra={compra}
+                          cartoes={cartoes}
+                          categorias={categorias}
+                          responsaveis={responsaveis}
+                          temRateio={rateio.length > 0}
+                        />
+                      ) : null}
                       <Button
                         size="icon"
                         variant={p.status === "pago" ? "default" : "outline"}
