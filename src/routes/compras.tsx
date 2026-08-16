@@ -152,6 +152,7 @@ function ComprasPage() {
                           categorias={categorias}
                           responsaveis={responsaveis}
                           temRateio={rateio.length > 0}
+                          mesReferencia={p.mes_referencia}
                         />
                       ) : null}
                       <Button
