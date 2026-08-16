@@ -46,7 +46,16 @@ function ComprasPage() {
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
   const { data: rateios = [] } = useQuery(rateiosQuery);
 
-  const doMes = useMemo(() => parcelas.filter((p) => p.mes_referencia === mes), [parcelas, mes]);
+  const doMes = useMemo(() => {
+    const compraById = new Map(compras.map((c) => [c.id, c]));
+    return parcelas
+      .filter((p) => p.mes_referencia === mes)
+      .sort((a, b) =>
+        (compraById.get(b.compra_id)?.data_compra ?? "").localeCompare(
+          compraById.get(a.compra_id)?.data_compra ?? "",
+        ),
+      );
+  }, [parcelas, compras, mes]);
   const nome = (id: string | null | undefined) => responsaveis.find((r) => r.id === id)?.nome;
 
   const excluir = useMutation({
