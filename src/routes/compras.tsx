@@ -96,7 +96,6 @@ function ComprasPage() {
               <TableHead>Responsável</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Parcela</TableHead>
-              <TableHead>Vencimento</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead />
             </TableRow>
@@ -140,7 +139,6 @@ function ComprasPage() {
                     {categorias.find((c) => c.id === p.categoria_id)?.nome ?? "—"}
                   </TableCell>
                   <TableCell className="num">{p.total ? `${p.numero}/${p.total}` : "recorrente"}</TableCell>
-                  <TableCell className="num">{dateLabel(p.data_prevista)}</TableCell>
                   <TableCell className="num text-right font-medium">{money(Number(p.valor))}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
