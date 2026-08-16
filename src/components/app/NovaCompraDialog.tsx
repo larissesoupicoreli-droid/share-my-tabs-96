@@ -4,7 +4,7 @@ import { Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cartoesQuery, categoriasQuery, responsaveisQuery } from "@/lib/data";
-import { generateInstallments, money, monthLabel, type PurchaseType } from "@/lib/finance";
+import { generateInstallments, invoiceMonthFor, money, monthLabel, type PurchaseType } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -34,10 +34,13 @@ export function NovaCompraDialog() {
   const [recFim, setRecFim] = useState("");
   const [usarRateio, setUsarRateio] = useState(false);
   const [rateio, setRateio] = useState<Record<string, string>>({});
+  const [mesRefManual, setMesRefManual] = useState<string | null>(null);
 
   const cartao = cartoes.find((c) => c.id === cartaoId);
   const titular = responsaveis.find((r) => r.id === cartao?.titular_id);
   const valorNum = Number(valor.replace(",", ".")) || 0;
+  const mesSugerido = cartao ? invoiceMonthFor(data, cartao.dia_fechamento) : `${data.slice(0, 7)}-01`;
+  const mesRef = mesRefManual ?? mesSugerido;
 
   const preview = useMemo(() => {
     if (!cartao || !valorNum) return [];
@@ -49,8 +52,9 @@ export function NovaCompraDialog() {
       diaFechamento: cartao.dia_fechamento,
       diaVencimento: cartao.dia_vencimento,
       recorrenciaFim: recFim || null,
+      mesInicial: mesRef,
     });
-  }, [cartao, valorNum, tipo, data, qtd, recFim]);
+  }, [cartao, valorNum, tipo, data, qtd, recFim, mesRef]);
 
   const rateioTotal = Object.values(rateio).reduce((s, v) => s + (Number(v.replace(",", ".")) || 0), 0);
 
@@ -63,6 +67,7 @@ export function NovaCompraDialog() {
     setRecFim("");
     setUsarRateio(false);
     setRateio({});
+    setMesRefManual(null);
   };
 
   const salvar = useMutation({
@@ -168,6 +173,18 @@ export function NovaCompraDialog() {
           <div className="grid gap-2">
             <Label>Data da compra</Label>
             <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
+            <p className="text-xs text-muted-foreground">Data real em que a compra foi feita.</p>
+          </div>
+          <div className="grid gap-2">
+            <Label>Fatura de referência</Label>
+            <Input
+              type="month"
+              value={mesRef.slice(0, 7)}
+              onChange={(e) => setMesRefManual(e.target.value ? `${e.target.value}-01` : null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Mês da fatura em que a compra entra ({monthLabel(mesRef)}). Alterar a data da compra não muda este campo.
+            </p>
           </div>
           <div className="grid gap-2">
             <Label>Tipo</Label>

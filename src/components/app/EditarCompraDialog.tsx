@@ -18,12 +18,15 @@ export function EditarCompraDialog({
   categorias,
   responsaveis,
   temRateio,
+  mesReferencia,
 }: {
   compra: Compra;
   cartoes: Cartao[];
   categorias: Categoria[];
   responsaveis: Responsavel[];
   temRateio: boolean;
+  /** Fatura (mês de referência) atual da compra — preservada ao editar a data. */
+  mesReferencia?: string | null;
 }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -37,6 +40,9 @@ export function EditarCompraDialog({
   const [responsavelId, setResponsavelId] = useState(compra.responsavel_id ?? "");
   const [observacao, setObservacao] = useState(compra.observacao ?? "");
   const [recFim, setRecFim] = useState(compra.recorrencia_fim ?? "");
+  const [mesRef, setMesRef] = useState(
+    (mesReferencia ?? compra.data_compra).slice(0, 7) + "-01",
+  );
 
   const cartao = cartoes.find((c) => c.id === cartaoId);
   const valorNum = Number(String(valor).replace(",", ".")) || 0;
@@ -51,8 +57,9 @@ export function EditarCompraDialog({
       diaFechamento: cartao.dia_fechamento,
       diaVencimento: cartao.dia_vencimento,
       recorrenciaFim: recFim || null,
+      mesInicial: mesRef,
     });
-  }, [cartao, valorNum, tipo, data, qtd, recFim]);
+  }, [cartao, valorNum, tipo, data, qtd, recFim, mesRef]);
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -113,7 +120,7 @@ export function EditarCompraDialog({
         <DialogHeader>
           <DialogTitle>Editar compra</DialogTitle>
           <DialogDescription>
-            Ao salvar, as parcelas são recalculadas com a data da compra e o fechamento do cartão.
+            A data da compra é a data real; a fatura de referência define em qual mês ela é cobrada. Mudar a data não altera a fatura.
           </DialogDescription>
         </DialogHeader>
 
@@ -140,6 +147,15 @@ export function EditarCompraDialog({
           <div className="grid gap-2">
             <Label>Data da compra</Label>
             <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label>Fatura de referência</Label>
+            <Input
+              type="month"
+              value={mesRef.slice(0, 7)}
+              onChange={(e) => e.target.value && setMesRef(`${e.target.value}-01`)}
+            />
+            <p className="text-xs text-muted-foreground">{monthLabel(mesRef)}</p>
           </div>
           <div className="grid gap-2">
             <Label>Tipo</Label>
