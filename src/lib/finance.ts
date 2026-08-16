@@ -83,8 +83,12 @@ export function generateInstallments(input: {
   diaFechamento: number;
   diaVencimento: number;
   recorrenciaFim?: string | null;
+  /** Fatura (mês de referência) da 1ª parcela. Se omitido, calcula pelo fechamento. */
+  mesInicial?: string | null;
 }): GeneratedInstallment[] {
-  const firstMonth = invoiceMonthFor(input.dataCompra, input.diaFechamento);
+  const firstMonth = input.mesInicial
+    ? input.mesInicial.slice(0, 8) + "01"
+    : invoiceMonthFor(input.dataCompra, input.diaFechamento);
 
   if (input.tipo === "recorrente") {
     let count = RECURRING_HORIZON_MONTHS;
