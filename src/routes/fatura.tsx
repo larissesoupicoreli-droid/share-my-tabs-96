@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
-import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
+import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
+import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,6 +31,7 @@ function FaturaPage() {
   const { data: parcelas = [] } = useQuery(parcelasQuery);
   const { data: compras = [] } = useQuery(comprasQuery);
   const { data: rateios = [] } = useQuery(rateiosQuery);
+  const { data: categorias = [] } = useQuery(categoriasQuery);
 
   const cartao = cartoes.find((c) => c.id === cartaoId) ?? cartoes[0];
   const nomeResp = (id: string | null) => responsaveis.find((r) => r.id === id)?.nome ?? "Sem responsável";
@@ -42,12 +44,11 @@ function FaturaPage() {
   const shares = useMemo(() => shareRows(doMes, compras, rateios), [doMes, compras, rateios]);
 
   const porPessoa = useMemo(() => {
-    const map = new Map<string, { nome: string; total: number; pago: number; itens: number }>();
+    const map = new Map<string, { nome: string; total: number; itens: number }>();
     for (const s of shares) {
       const key = s.responsavel_id ?? "sem";
-      const cur = map.get(key) ?? { nome: nomeResp(s.responsavel_id), total: 0, pago: 0, itens: 0 };
+      const cur = map.get(key) ?? { nome: nomeResp(s.responsavel_id), total: 0, itens: 0 };
       cur.total += s.valor;
-      if (s.parcela.status === "pago") cur.pago += s.valor;
       cur.itens += 1;
       map.set(key, cur);
     }
@@ -101,7 +102,7 @@ function FaturaPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{p.nome}</p>
                   <p className="text-xs text-muted-foreground">
-                    {p.itens} lançamento{p.itens > 1 ? "s" : ""} · pago {money(p.pago)}
+                    {p.itens} lançamento{p.itens > 1 ? "s" : ""}
                   </p>
                   <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                     <div
@@ -129,30 +130,51 @@ function FaturaPage() {
               <TableHead>Descrição</TableHead>
               <TableHead>Parcela</TableHead>
               <TableHead>Responsável</TableHead>
-              <TableHead>Vencimento</TableHead>
+              <TableHead>Data da compra</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Valor</TableHead>
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {shares.map((s, i) => (
-              <TableRow key={`${s.parcela.id}-${i}`}>
-                <TableCell className="font-medium">{s.compra?.descricao ?? "—"}</TableCell>
-                <TableCell className="num text-muted-foreground">
-                  {s.parcela.total ? `${s.parcela.numero}/${s.parcela.total}` : "recorrente"}
-                </TableCell>
-                <TableCell>{nomeResp(s.responsavel_id)}</TableCell>
-                <TableCell className="num">{dateLabel(s.parcela.data_prevista)}</TableCell>
-                <TableCell>
-                  {s.parcela.status === "pago" ? (
-                    <Badge className="gap-1"><CheckCircle2 className="size-3" /> Pago</Badge>
-                  ) : (
-                    <Badge variant="secondary">Pendente</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="num text-right">{money(s.valor)}</TableCell>
-              </TableRow>
-            ))}
+            {shares.map((s, i) => {
+              const rateioCompra = rateios.filter((r) => r.compra_id === s.parcela.compra_id);
+              const primeiroMes = parcelas
+                .filter((x) => x.compra_id === s.parcela.compra_id)
+                .reduce((min, x) => (min && min <= x.mes_referencia ? min : x.mes_referencia), "");
+              return (
+                <TableRow key={`${s.parcela.id}-${i}`}>
+                  <TableCell className="font-medium">{s.compra?.descricao ?? "—"}</TableCell>
+                  <TableCell className="num text-muted-foreground">
+                    {s.parcela.total ? `${s.parcela.numero}/${s.parcela.total}` : "recorrente"}
+                  </TableCell>
+                  <TableCell>{nomeResp(s.responsavel_id)}</TableCell>
+                  <TableCell className="num">{s.compra ? dateLabel(s.compra.data_compra) : "—"}</TableCell>
+                  <TableCell>
+                    {s.parcela.status === "pago" ? (
+                      <Badge className="gap-1"><CheckCircle2 className="size-3" /> Pago</Badge>
+                    ) : (
+                      <Badge variant="secondary">Pendente</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="num text-right">{money(s.valor)}</TableCell>
+                  <TableCell>
+                    {s.compra ? (
+                      <div className="flex justify-end">
+                        <EditarCompraDialog
+                          compra={s.compra}
+                          cartoes={cartoes}
+                          categorias={categorias}
+                          responsaveis={responsaveis}
+                          temRateio={rateioCompra.length > 0}
+                          mesReferencia={primeiroMes || s.parcela.mes_referencia}
+                        />
+                      </div>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

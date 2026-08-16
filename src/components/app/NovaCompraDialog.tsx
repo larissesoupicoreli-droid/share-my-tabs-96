@@ -4,7 +4,7 @@ import { Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cartoesQuery, categoriasQuery, responsaveisQuery } from "@/lib/data";
-import { generateInstallments, invoiceMonthFor, money, monthLabel, type PurchaseType } from "@/lib/finance";
+import { currentMonthKey, generateInstallments, invoiceMonthFor, money, monthLabel, type PurchaseType } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,11 @@ export function NovaCompraDialog() {
   const cartao = cartoes.find((c) => c.id === cartaoId);
   const titular = responsaveis.find((r) => r.id === cartao?.titular_id);
   const valorNum = Number(valor.replace(",", ".")) || 0;
-  const mesSugerido = cartao ? invoiceMonthFor(data, cartao.dia_fechamento) : `${data.slice(0, 7)}-01`;
+  // Uma compra lançada com atraso não pode cair numa fatura que já fechou:
+  // a sugestão nunca recua para antes da fatura aberta atual.
+  const mesSugerido = cartao
+    ? [invoiceMonthFor(data, cartao.dia_fechamento), currentMonthKey()].sort().pop()!
+    : `${data.slice(0, 7)}-01`;
   const mesRef = mesRefManual ?? mesSugerido;
 
   const preview = useMemo(() => {

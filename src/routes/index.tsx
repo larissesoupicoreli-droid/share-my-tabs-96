@@ -45,7 +45,6 @@ function Dashboard() {
     [parcelas, mes],
   );
   const total = doMes.reduce((s, p) => s + Number(p.valor), 0);
-  const pago = doMes.filter((p) => p.status === "pago").reduce((s, p) => s + Number(p.valor), 0);
 
   const shares = useMemo(() => shareRows(doMes, compras, rateios), [doMes, compras, rateios]);
 
@@ -77,7 +76,6 @@ function Dashboard() {
         <div className="surface-card gradient-brand p-5 text-primary-foreground">
           <p className="text-xs uppercase tracking-[0.16em] opacity-80">Total das faturas</p>
           <p className="num mt-2 text-2xl font-semibold">{money(total)}</p>
-          <p className="mt-1 text-xs opacity-80">Pago: {money(pago)}</p>
         </div>
         {destaque.map((nome) => (
           <div key={nome} className="surface-card p-5">

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
@@ -49,18 +49,6 @@ function ComprasPage() {
   const doMes = useMemo(() => parcelas.filter((p) => p.mes_referencia === mes), [parcelas, mes]);
   const nome = (id: string | null | undefined) => responsaveis.find((r) => r.id === id)?.nome;
 
-  const marcarPago = useMutation({
-    mutationFn: async (p: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from("parcelas")
-        .update({ status: p.status === "pago" ? "pendente" : "pago" })
-        .eq("id", p.id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["parcelas"] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const excluir = useMutation({
     mutationFn: async ({ id, tudo }: { id: string; tudo: boolean }) => {
       const parcela = parcelas.find((p) => p.id === id)!;
@@ -85,7 +73,6 @@ function ComprasPage() {
         <MonthPicker value={mes} onChange={setMes} />
         <div className="flex gap-6 text-sm">
           <span>Previsto <strong className="num">{money(total)}</strong></span>
-          <span>Pago <strong className="num">{money(pago)}</strong></span>
           <span>Pendente <strong className="num">{money(total - pago)}</strong></span>
         </div>
       </div>
@@ -158,14 +145,6 @@ function ComprasPage() {
                           mesReferencia={primeiroMes || p.mes_referencia}
                         />
                       ) : null}
-                      <Button
-                        size="icon"
-                        variant={p.status === "pago" ? "default" : "outline"}
-                        title="Marcar como paga"
-                        onClick={() => marcarPago.mutate({ id: p.id, status: p.status })}
-                      >
-                        <Check className="size-4" />
-                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button size="icon" variant="outline"><Trash2 className="size-4" /></Button>
