@@ -41,7 +41,13 @@ function FaturaPage() {
     [parcelas, mes, cartao?.id],
   );
 
-  const shares = useMemo(() => shareRows(doMes, compras, rateios), [doMes, compras, rateios]);
+  const shares = useMemo(
+    () =>
+      shareRows(doMes, compras, rateios).sort(
+        (a, b) => (b.compra?.data_compra ?? "").localeCompare(a.compra?.data_compra ?? ""),
+      ),
+    [doMes, compras, rateios],
+  );
 
   const porPessoa = useMemo(() => {
     const map = new Map<string, { nome: string; total: number; itens: number }>();
