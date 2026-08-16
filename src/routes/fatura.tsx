@@ -1,15 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
 import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
 import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/fatura")({
   head: () => ({
@@ -24,6 +38,7 @@ export const Route = createFileRoute("/fatura")({
 });
 
 function FaturaPage() {
+  const qc = useQueryClient();
   const [mes, setMes] = useState(currentMonthKey());
   const [cartaoId, setCartaoId] = useState<string>("");
   const { data: cartoes = [] } = useQuery(cartoesQuery);
@@ -32,6 +47,27 @@ function FaturaPage() {
   const { data: compras = [] } = useQuery(comprasQuery);
   const { data: rateios = [] } = useQuery(rateiosQuery);
   const { data: categorias = [] } = useQuery(categoriasQuery);
+
+  const excluir = useMutation({
+    mutationFn: async ({ id, compraId, tudo }: { id: string; compraId: string; tudo: boolean }) => {
+      if (!tudo) {
+        const { error } = await supabase.from("parcelas").delete().eq("id", id);
+        if (error) throw new Error(error.message);
+        return;
+      }
+      const { error: rateioErr } = await supabase.from("rateios").delete().eq("compra_id", compraId);
+      if (rateioErr) throw new Error(rateioErr.message);
+      const { error: parcelasErr } = await supabase.from("parcelas").delete().eq("compra_id", compraId);
+      if (parcelasErr) throw new Error(parcelasErr.message);
+      const { error } = await supabase.from("compras").delete().eq("id", compraId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Removido.");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const cartao = cartoes.find((c) => c.id === cartaoId) ?? cartoes[0];
   const nomeResp = (id: string | null) => responsaveis.find((r) => r.id === id)?.nome ?? "Sem responsável";
@@ -148,6 +184,9 @@ function FaturaPage() {
               const primeiroMes = parcelas
                 .filter((x) => x.compra_id === s.parcela.compra_id)
                 .reduce((min, x) => (min && min <= x.mes_referencia ? min : x.mes_referencia), "");
+              const futuras = parcelas.filter(
+                (x) => x.compra_id === s.parcela.compra_id && x.mes_referencia > mes,
+              ).length;
               return (
                 <TableRow key={`${s.parcela.id}-${i}`}>
                   <TableCell className="font-medium">{s.compra?.descricao ?? "—"}</TableCell>
@@ -166,7 +205,7 @@ function FaturaPage() {
                   <TableCell className="num text-right">{money(s.valor)}</TableCell>
                   <TableCell>
                     {s.compra ? (
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-1">
                         <EditarCompraDialog
                           compra={s.compra}
                           cartoes={cartoes}
@@ -175,6 +214,37 @@ function FaturaPage() {
                           temRateio={rateioCompra.length > 0}
                           mesReferencia={primeiroMes || s.parcela.mes_referencia}
                         />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="outline"><Trash2 className="size-4" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir lançamento</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta compra possui {futuras} parcela(s) futura(s). Deseja excluir toda a compra e
+                                suas parcelas ou apenas esta parcela?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() =>
+                                  excluir.mutate({ id: s.parcela.id, compraId: s.parcela.compra_id, tudo: false })
+                                }
+                              >
+                                Só esta parcela
+                              </AlertDialogAction>
+                              <AlertDialogAction
+                                onClick={() =>
+                                  excluir.mutate({ id: s.parcela.id, compraId: s.parcela.compra_id, tudo: true })
+                                }
+                              >
+                                Compra inteira
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     ) : null}
                   </TableCell>

@@ -114,7 +114,7 @@ function FuturoPage() {
               <TableHead>Cartão</TableHead>
               <TableHead>Parcela</TableHead>
               <TableHead>Responsável</TableHead>
-              <TableHead>Data prevista</TableHead>
+              <TableHead>Data da compra</TableHead>
               <TableHead className="text-right">Valor</TableHead>
             </TableRow>
           </TableHeader>
@@ -127,7 +127,7 @@ function FuturoPage() {
                   {s.parcela.total ? `${s.parcela.numero}/${s.parcela.total}` : "recorrente"}
                 </TableCell>
                 <TableCell>{nome(s.responsavel_id)}</TableCell>
-                <TableCell className="num">{dateLabel(s.parcela.data_prevista)}</TableCell>
+                <TableCell className="num">{s.compra ? dateLabel(s.compra.data_compra) : "—"}</TableCell>
                 <TableCell className="num text-right">{money(s.valor)}</TableCell>
               </TableRow>
             ))}
