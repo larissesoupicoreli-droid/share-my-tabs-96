@@ -71,7 +71,9 @@ function FuturoPage() {
   }, [withShares, meses]);
 
   const maior = Math.max(...porMes.map(([, v]) => v), 1);
-  const doMes = withShares.filter((s) => s.parcela.mes_referencia === mesSel);
+  const doMes = withShares
+    .filter((s) => s.parcela.mes_referencia === mesSel)
+    .sort((a, b) => (b.compra?.data_compra ?? "").localeCompare(a.compra?.data_compra ?? ""));
   const nome = (id: string | null) => responsaveis.find((r) => r.id === id)?.nome ?? "—";
 
   return (
