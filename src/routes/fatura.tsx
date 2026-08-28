@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Trash2 } from "lucide-react";
+import { CheckCircle2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
@@ -10,6 +10,7 @@ import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
 import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,7 @@ function FaturaPage() {
   const qc = useQueryClient();
   const [mes, setMes] = useState(currentMonthKey());
   const [cartaoId, setCartaoId] = useState<string>("");
+  const [busca, setBusca] = useState("");
   const { data: cartoes = [] } = useQuery(cartoesQuery);
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
   const { data: parcelas = [] } = useQuery(parcelasQuery);
@@ -98,6 +100,12 @@ function FaturaPage() {
   }, [shares, responsaveis]);
 
   const total = porPessoa.reduce((s, p) => s + p.total, 0);
+
+  const sharesFiltradas = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return shares;
+    return shares.filter((s) => (s.compra?.descricao ?? "").toLowerCase().includes(termo));
+  }, [shares, busca]);
 
   return (
     <AppShell
@@ -165,7 +173,19 @@ function FaturaPage() {
         </div>
       </div>
 
-      <div className="surface-card mt-5 overflow-x-auto">
+      <div className="mt-5 flex items-center gap-2">
+        <div className="relative w-full max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar compra…"
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      <div className="surface-card mt-3 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -179,7 +199,7 @@ function FaturaPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {shares.map((s, i) => {
+            {sharesFiltradas.map((s, i) => {
               const rateioCompra = rateios.filter((r) => r.compra_id === s.parcela.compra_id);
               const primeiroMes = parcelas
                 .filter((x) => x.compra_id === s.parcela.compra_id)
@@ -253,6 +273,11 @@ function FaturaPage() {
             })}
           </TableBody>
         </Table>
+        {sharesFiltradas.length === 0 ? (
+          <p className="p-6 text-sm text-muted-foreground">
+            {shares.length === 0 ? "Nenhum lançamento nesta fatura." : "Nenhuma compra encontrada para essa busca."}
+          </p>
+        ) : null}
       </div>
     </AppShell>
   );
