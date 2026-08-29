@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Search, Trash2 } from "lucide-react";
+import { CheckCircle2, FileDown, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
@@ -112,16 +112,21 @@ function FaturaPage() {
       title="Quanto cada um deve pagar na fatura?"
       subtitle="Divisão por responsável da compra — não pelo titular do cartão"
     >
-      <div className="flex flex-wrap items-center gap-3">
-        <Select value={cartao?.id ?? ""} onValueChange={setCartaoId}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Cartão" /></SelectTrigger>
-          <SelectContent>
-            {cartoes.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <MonthPicker value={mes} onChange={setMes} />
+      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={cartao?.id ?? ""} onValueChange={setCartaoId}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Cartão" /></SelectTrigger>
+            <SelectContent>
+              {cartoes.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <MonthPicker value={mes} onChange={setMes} />
+        </div>
+        <Button variant="outline" className="gap-2" onClick={() => window.print()}>
+          <FileDown className="size-4" /> Exportar PDF
+        </Button>
       </div>
 
       <div className="surface-card mt-5 overflow-hidden">
@@ -173,7 +178,7 @@ function FaturaPage() {
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-2">
+      <div className="mt-5 flex items-center gap-2 print:hidden">
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -195,7 +200,7 @@ function FaturaPage() {
               <TableHead>Data da compra</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Valor</TableHead>
-              <TableHead />
+              <TableHead className="print:hidden" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -223,7 +228,7 @@ function FaturaPage() {
                     )}
                   </TableCell>
                   <TableCell className="num text-right">{money(s.valor)}</TableCell>
-                  <TableCell>
+                  <TableCell className="print:hidden">
                     {s.compra ? (
                       <div className="flex justify-end gap-1">
                         <EditarCompraDialog

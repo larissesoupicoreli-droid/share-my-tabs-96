@@ -35,7 +35,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
   return (
     <div className="min-h-screen bg-background lg:flex">
       <aside
-        className={`${open ? "block" : "hidden"} bg-sidebar text-sidebar-foreground lg:block lg:w-64 lg:shrink-0`}
+        className={`${open ? "block" : "hidden"} bg-sidebar text-sidebar-foreground lg:block lg:w-64 lg:shrink-0 print:hidden`}
       >
         <div className="sticky top-0 flex h-full flex-col gap-6 p-5">
           <div>
@@ -70,7 +70,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
       </aside>
 
       <main className="min-w-0 flex-1">
-        <header className="flex flex-wrap items-center gap-3 border-b border-border bg-card px-5 py-4">
+        <header className="flex flex-wrap items-center gap-3 border-b border-border bg-card px-5 py-4 print:hidden">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen((v) => !v)}>
             <Menu className="size-5" />
           </Button>
@@ -80,7 +80,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
           </div>
           <NovaCompraDialog />
         </header>
-        <div className="p-5">{children}</div>
+        <div className="p-5 print:p-0">{children}</div>
       </main>
     </div>
   );

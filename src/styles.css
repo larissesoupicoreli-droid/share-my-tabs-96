@@ -170,3 +170,10 @@
 @utility num {
   font-variant-numeric: tabular-nums;
 }
+
+@media print {
+  .gradient-brand {
+    background-image: none;
+    color: var(--color-foreground);
+  }
+}
