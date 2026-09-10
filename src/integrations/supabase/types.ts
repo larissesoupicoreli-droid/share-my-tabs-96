@@ -152,6 +152,84 @@ export type Database = {
           },
         ]
       }
+      gasto_categorias: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      gastos: {
+        Row: {
+          categoria_id: string | null
+          created_at: string
+          created_by: string
+          data_gasto: string
+          descricao: string
+          forma_pagamento: Database["public"]["Enums"]["payment_method"]
+          id: string
+          mes_referencia: string
+          observacao: string | null
+          responsavel_id: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria_id?: string | null
+          created_at?: string
+          created_by?: string
+          data_gasto: string
+          descricao: string
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
+          id?: string
+          mes_referencia: string
+          observacao?: string | null
+          responsavel_id?: string | null
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          categoria_id?: string | null
+          created_at?: string
+          created_by?: string
+          data_gasto?: string
+          descricao?: string
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
+          id?: string
+          mes_referencia?: string
+          observacao?: string | null
+          responsavel_id?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gastos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "gasto_categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "responsaveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcelas: {
         Row: {
           cartao_id: string
@@ -361,6 +439,13 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member"
       installment_status: "pendente" | "pago" | "cancelado"
+      payment_method:
+        | "pix"
+        | "debito"
+        | "dinheiro"
+        | "boleto"
+        | "transferencia"
+        | "outros"
       purchase_type: "avista" | "parcelada" | "recorrente"
     }
     CompositeTypes: {
@@ -491,6 +576,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "member"],
       installment_status: ["pendente", "pago", "cancelado"],
+      payment_method: [
+        "pix",
+        "debito",
+        "dinheiro",
+        "boleto",
+        "transferencia",
+        "outros",
+      ],
       purchase_type: ["avista", "parcelada", "recorrente"],
     },
   },
