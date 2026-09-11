@@ -13,6 +13,7 @@ import {
   responsaveisQuery,
   shareRows,
 } from "@/lib/data";
+import { gastosQuery } from "@/lib/gastos";
 import { currentMonthKey, money, monthLabel } from "@/lib/finance";
 
 export const Route = createFileRoute("/")({
@@ -45,6 +46,11 @@ function Dashboard() {
     [parcelas, mes],
   );
   const total = doMes.reduce((s, p) => s + Number(p.valor), 0);
+  const { data: gastos = [] } = useQuery(gastosQuery);
+  const totalFora = useMemo(
+    () => gastos.filter((g) => g.mes_referencia === mes).reduce((s, g) => s + Number(g.valor), 0),
+    [gastos, mes],
+  );
 
   const shares = useMemo(() => shareRows(doMes, compras, rateios), [doMes, compras, rateios]);
 
