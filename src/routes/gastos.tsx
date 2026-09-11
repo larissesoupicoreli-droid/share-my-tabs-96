@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
-import { cartoesQuery, parcelasQuery, responsaveisQuery } from "@/lib/data";
+import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
@@ -50,16 +50,13 @@ function GastosPage() {
   const { data: gastos = [] } = useQuery(gastosQuery);
   const { data: categorias = [] } = useQuery(gastoCategoriasQuery);
   const { data: parcelasAll = [] } = useQuery(parcelasQuery);
+  const { data: compras = [] } = useQuery(comprasQuery);
+  const { data: rateios = [] } = useQuery(rateiosQuery);
   const { data: cartoes = [] } = useQuery(cartoesQuery);
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
 
   // Controle da Larisse: cartões mostram somente a parte dela em cada fatura.
   const larisseId = responsaveis.find((r) => r.nome.trim().toLowerCase() === "larisse")?.id ?? null;
-
-  const parcelas = useMemo(() => {
-    if (!larisseId) return parcelasAll;
-    return parcelasAll.filter((p) => p.responsavel_id === larisseId);
-  }, [parcelasAll, larisseId]);
 
   const catNome = (id: string | null) => categorias.find((c) => c.id === id)?.nome ?? "Sem categoria";
 
@@ -90,14 +87,19 @@ function GastosPage() {
   }, [gastos, mes, categorias]);
 
   const porCartao = useMemo(() => {
-    const doMesParcelas = parcelas.filter((p) => p.mes_referencia === mes && p.status !== "cancelado");
+    const doMesParcelas = parcelasAll.filter((p) => p.mes_referencia === mes && p.status !== "cancelado");
+    const sharesLarisse = shareRows(doMesParcelas, compras, rateios).filter(
+      (s) => s.responsavel_id === larisseId,
+    );
     return cartoes
       .map((c) => ({
         nome: c.nome,
-        total: doMesParcelas.filter((p) => p.cartao_id === c.id).reduce((s, p) => s + Number(p.valor), 0),
+        total: sharesLarisse
+          .filter((s) => s.parcela.cartao_id === c.id)
+          .reduce((sum, s) => sum + s.valor, 0),
       }))
       .filter((c) => c.total > 0);
-  }, [parcelas, cartoes, mes]);
+  }, [parcelasAll, compras, rateios, cartoes, mes, larisseId]);
 
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
   const totalMes = totalFora + totalCartoes;
