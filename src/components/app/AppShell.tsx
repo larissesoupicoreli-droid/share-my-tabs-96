@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { CreditCard, LayoutDashboard, Receipt, CalendarClock, Wallet, User, LogOut, Menu, PiggyBank } from "lucide-react";
+import { CreditCard, LayoutDashboard, Receipt, CalendarClock, User, LogOut, Menu, PiggyBank } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { NovaCompraDialog } from "./NovaCompraDialog";
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/fatura", label: "Divisão da fatura", icon: Receipt },
-  { to: "/compras", label: "Compras", icon: Wallet },
   { to: "/futuro", label: "Parcelas futuras", icon: CalendarClock },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/gastos", label: "Gastos do mês", icon: PiggyBank },
