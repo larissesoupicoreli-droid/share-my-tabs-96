@@ -145,7 +145,7 @@ function GastosPage() {
           <p className="num mt-2 text-2xl font-semibold">{money(totalFora)}</p>
         </div>
         <div className="surface-card p-5">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Cartões de crédito</p>
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Cartões (parte da Larisse)</p>
           <p className="num mt-2 text-2xl font-semibold">{money(totalCartoes)}</p>
         </div>
       </div>
