@@ -137,7 +137,7 @@ function GastosPage() {
   const maiorTotal = Math.max(...historico.map((h) => h.total), 1);
 
   return (
-    <AppShell title="Gastos do mês" subtitle={`Fora do cartão — ${monthLabel(mes)}`}>
+    <AppShell title="Gastos do mês" subtitle={`${perfil?.nome ? `De ${perfil.nome} — ` : ""}${monthLabel(mes)}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <MonthPicker value={mes} onChange={setMes} />
         <GastoDialog mes={mes} />
