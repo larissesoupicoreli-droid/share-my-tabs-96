@@ -7,8 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
-import { cartoesQuery, parcelasQuery } from "@/lib/data";
-import { gastoCategoriasQuery, gastosQuery, meuPerfilQuery, paymentLabel } from "@/lib/gastos";
+import { cartoesQuery, parcelasQuery, responsaveisQuery } from "@/lib/data";
+import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
 import { addMonths, currentMonthKey, dateLabel, money, monthLabel, shortMonthLabel } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -47,27 +47,19 @@ function GastosPage() {
   const [filtro, setFiltro] = useState("todas");
   const [ordem, setOrdem] = useState<"asc" | "desc">("asc");
 
-  const { data: perfil } = useQuery(meuPerfilQuery);
-  const { data: gastosAll = [] } = useQuery(gastosQuery);
+  const { data: gastos = [] } = useQuery(gastosQuery);
   const { data: categorias = [] } = useQuery(gastoCategoriasQuery);
   const { data: parcelasAll = [] } = useQuery(parcelasQuery);
   const { data: cartoes = [] } = useQuery(cartoesQuery);
+  const { data: responsaveis = [] } = useQuery(responsaveisQuery);
 
-  const meuRespId = perfil?.responsavel_id ?? null;
-  const meuId = perfil?.id ?? null;
-
-  // Visão pessoal: somente os gastos da pessoa logada (ex.: Larisse vê só os dela).
-  const gastos = useMemo(() => {
-    if (!perfil) return gastosAll;
-    return gastosAll.filter((g) =>
-      g.responsavel_id ? g.responsavel_id === meuRespId : g.created_by === meuId,
-    );
-  }, [gastosAll, perfil, meuRespId, meuId]);
+  // Controle da Larisse: cartões mostram somente a parte dela em cada fatura.
+  const larisseId = responsaveis.find((r) => r.nome.trim().toLowerCase() === "larisse")?.id ?? null;
 
   const parcelas = useMemo(() => {
-    if (!meuRespId) return parcelasAll;
-    return parcelasAll.filter((p) => p.responsavel_id === meuRespId);
-  }, [parcelasAll, meuRespId]);
+    if (!larisseId) return parcelasAll;
+    return parcelasAll.filter((p) => p.responsavel_id === larisseId);
+  }, [parcelasAll, larisseId]);
 
   const catNome = (id: string | null) => categorias.find((c) => c.id === id)?.nome ?? "Sem categoria";
 
@@ -137,7 +129,7 @@ function GastosPage() {
   const maiorTotal = Math.max(...historico.map((h) => h.total), 1);
 
   return (
-    <AppShell title="Gastos do mês" subtitle={`${perfil?.nome ? `De ${perfil.nome} — ` : ""}${monthLabel(mes)}`}>
+    <AppShell title="Gastos do mês" subtitle={`Controle da Larisse — ${monthLabel(mes)}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <MonthPicker value={mes} onChange={setMes} />
         <GastoDialog mes={mes} />
@@ -153,7 +145,7 @@ function GastosPage() {
           <p className="num mt-2 text-2xl font-semibold">{money(totalFora)}</p>
         </div>
         <div className="surface-card p-5">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Cartões de crédito</p>
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Cartões (parte da Larisse)</p>
           <p className="num mt-2 text-2xl font-semibold">{money(totalCartoes)}</p>
         </div>
       </div>
