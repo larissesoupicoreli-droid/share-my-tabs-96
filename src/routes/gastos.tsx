@@ -9,7 +9,7 @@ import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
 import { cartoesQuery, parcelasQuery, responsaveisQuery } from "@/lib/data";
 import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
-import { addMonths, currentMonthKey, dateLabel, money, monthLabel, shortMonthLabel } from "@/lib/finance";
+import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -102,17 +102,6 @@ function GastosPage() {
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
   const totalMes = totalFora + totalCartoes;
 
-  const historico = useMemo(() => {
-    const meses = [addMonths(mes, -2), addMonths(mes, -1), mes, addMonths(mes, 1)];
-    return meses.map((m) => {
-      const fora = gastos.filter((g) => g.mes_referencia === m).reduce((s, g) => s + Number(g.valor), 0);
-      const cartao = parcelas
-        .filter((p) => p.mes_referencia === m && p.status !== "cancelado")
-        .reduce((s, p) => s + Number(p.valor), 0);
-      return { mes: m, fora, cartao, total: fora + cartao };
-    });
-  }, [gastos, parcelas, mes]);
-
   const excluir = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase.from("gastos").delete().eq("id", id).select("id");
@@ -125,8 +114,6 @@ function GastosPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-  const maiorTotal = Math.max(...historico.map((h) => h.total), 1);
 
   return (
     <AppShell title="Gastos do mês" subtitle={`Controle da Larisse — ${monthLabel(mes)}`}>
@@ -293,28 +280,6 @@ function GastosPage() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      <div className="surface-card mt-5 p-5">
-        <h3 className="text-sm font-semibold">Comparação entre meses</h3>
-        <div className="mt-4 grid gap-3">
-          {historico.map((h) => (
-            <div key={h.mes}>
-              <div className="flex justify-between text-sm">
-                <span className={h.mes === mes ? "font-semibold" : ""}>{shortMonthLabel(h.mes)}</span>
-                <span className="num">
-                  {money(h.total)}{" "}
-                  <span className="text-xs text-muted-foreground">
-                    (cartões {money(h.cartao)} · fora {money(h.fora)})
-                  </span>
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${(h.total / maiorTotal) * 100}%` }} />
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </AppShell>
