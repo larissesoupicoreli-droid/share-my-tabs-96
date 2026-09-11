@@ -93,6 +93,22 @@ function Dashboard() {
         </div>
       </div>
 
+      <div className="surface-card mt-5 p-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Gasto total do mês</p>
+            <p className="num mt-2 text-3xl font-semibold">{money(total + totalFora)}</p>
+          </div>
+          <div className="grid gap-1 text-sm text-muted-foreground">
+            <span>Cartões <strong className="num text-foreground">{money(total)}</strong></span>
+            <span>Fora do cartão <strong className="num text-foreground">{money(totalFora)}</strong></span>
+          </div>
+          <Link to="/gastos" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+            Lançar gastos do mês <ArrowRight className="size-3" />
+          </Link>
+        </div>
+      </div>
+
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
         {cartoes.map((c) => {
           const doCartao = doMes.filter((p) => p.cartao_id === c.id).reduce((s, p) => s + Number(p.valor), 0);
