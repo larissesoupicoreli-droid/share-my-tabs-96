@@ -25,6 +25,25 @@ export type Gasto = {
   forma_pagamento: PaymentMethod;
   responsavel_id: string | null;
   observacao: string | null;
+  created_by: string;
+};
+
+export type MeuPerfil = { id: string; nome: string; responsavel_id: string | null };
+
+export const meuPerfilQuery = {
+  queryKey: ["meu-perfil"],
+  queryFn: async (): Promise<MeuPerfil | null> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id,nome,responsavel_id")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as MeuPerfil | null) ?? { id: user.id, nome: "", responsavel_id: null };
+  },
 };
 
 const unwrap = <T,>(res: { data: T | null; error: { message: string } | null }): T => {
@@ -44,7 +63,7 @@ export const gastosQuery = {
     unwrap<Gasto[]>(
       await supabase
         .from("gastos")
-        .select("id,descricao,valor,data_gasto,mes_referencia,categoria_id,forma_pagamento,responsavel_id,observacao")
+        .select("id,descricao,valor,data_gasto,mes_referencia,categoria_id,forma_pagamento,responsavel_id,observacao,created_by")
         .order("data_gasto", { ascending: true }),
     ),
 };
