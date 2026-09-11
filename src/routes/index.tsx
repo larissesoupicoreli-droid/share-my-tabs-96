@@ -13,7 +13,6 @@ import {
   responsaveisQuery,
   shareRows,
 } from "@/lib/data";
-import { gastosQuery } from "@/lib/gastos";
 import { currentMonthKey, money, monthLabel } from "@/lib/finance";
 
 export const Route = createFileRoute("/")({
@@ -46,11 +45,6 @@ function Dashboard() {
     [parcelas, mes],
   );
   const total = doMes.reduce((s, p) => s + Number(p.valor), 0);
-  const { data: gastos = [] } = useQuery(gastosQuery);
-  const totalFora = useMemo(
-    () => gastos.filter((g) => g.mes_referencia === mes).reduce((s, g) => s + Number(g.valor), 0),
-    [gastos, mes],
-  );
 
   const shares = useMemo(() => shareRows(doMes, compras, rateios), [doMes, compras, rateios]);
 
@@ -96,22 +90,6 @@ function Dashboard() {
           <p className="num mt-2 text-2xl font-semibold">
             {money(porResponsavel.filter(([n]) => !destaque.includes(n)).reduce((s, [, v]) => s + v, 0))}
           </p>
-        </div>
-      </div>
-
-      <div className="surface-card mt-5 p-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Gasto total do mês</p>
-            <p className="num mt-2 text-3xl font-semibold">{money(total + totalFora)}</p>
-          </div>
-          <div className="grid gap-1 text-sm text-muted-foreground">
-            <span>Cartões <strong className="num text-foreground">{money(total)}</strong></span>
-            <span>Fora do cartão <strong className="num text-foreground">{money(totalFora)}</strong></span>
-          </div>
-          <Link to="/gastos" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-            Lançar gastos do mês <ArrowRight className="size-3" />
-          </Link>
         </div>
       </div>
 
