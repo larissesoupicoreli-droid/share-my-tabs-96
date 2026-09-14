@@ -26,6 +26,9 @@ export type Gasto = {
   responsavel_id: string | null;
   observacao: string | null;
   created_by: string;
+  recorrencia_id: string | null;
+  recorrencia_numero: number | null;
+  recorrencia_total: number | null;
 };
 
 export type MeuPerfil = { id: string; nome: string; responsavel_id: string | null };
@@ -63,7 +66,7 @@ export const gastosQuery = {
     unwrap<Gasto[]>(
       await supabase
         .from("gastos")
-        .select("id,descricao,valor,data_gasto,mes_referencia,categoria_id,forma_pagamento,responsavel_id,observacao,created_by")
+        .select("id,descricao,valor,data_gasto,mes_referencia,categoria_id,forma_pagamento,responsavel_id,observacao,created_by,recorrencia_id,recorrencia_numero,recorrencia_total")
         .order("data_gasto", { ascending: true }),
     ),
 };

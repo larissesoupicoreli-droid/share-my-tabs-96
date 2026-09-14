@@ -32,6 +32,16 @@ export const addMonths = (iso: string, n: number) => {
   return monthKey(new Date(Date.UTC(y!, (m ?? 1) - 1 + n, 1)));
 };
 
+/** Avança uma data por meses, preservando o dia quando ele existe no mês de destino. */
+export const addMonthsToDate = (iso: string, n: number) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  const target = new Date(Date.UTC(y!, (m ?? 1) - 1 + n, 1));
+  const year = target.getUTCFullYear();
+  const month0 = target.getUTCMonth();
+  const day = clampDay(year, month0, d ?? 1);
+  return `${year}-${String(month0 + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+
 export const monthRange = (start: string, count: number) =>
   Array.from({ length: count }, (_, i) => addMonths(start, i));
 
