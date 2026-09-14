@@ -181,6 +181,9 @@ export type Database = {
           id: string
           mes_referencia: string
           observacao: string | null
+          recorrencia_id: string | null
+          recorrencia_numero: number | null
+          recorrencia_total: number | null
           responsavel_id: string | null
           updated_at: string
           valor: number
@@ -195,6 +198,9 @@ export type Database = {
           id?: string
           mes_referencia: string
           observacao?: string | null
+          recorrencia_id?: string | null
+          recorrencia_numero?: number | null
+          recorrencia_total?: number | null
           responsavel_id?: string | null
           updated_at?: string
           valor: number
@@ -209,6 +215,9 @@ export type Database = {
           id?: string
           mes_referencia?: string
           observacao?: string | null
+          recorrencia_id?: string | null
+          recorrencia_numero?: number | null
+          recorrencia_total?: number | null
           responsavel_id?: string | null
           updated_at?: string
           valor?: number
@@ -381,6 +390,48 @@ export type Database = {
           },
         ]
       }
+      recebiveis: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_prevista: string
+          data_recebimento: string | null
+          descricao: string
+          id: string
+          mes_referencia: string
+          observacao: string | null
+          status: Database["public"]["Enums"]["receivable_status"]
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          data_prevista: string
+          data_recebimento?: string | null
+          descricao: string
+          id?: string
+          mes_referencia: string
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["receivable_status"]
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_prevista?: string
+          data_recebimento?: string | null
+          descricao?: string
+          id?: string
+          mes_referencia?: string
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["receivable_status"]
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       responsaveis: {
         Row: {
           ativo: boolean
@@ -447,6 +498,7 @@ export type Database = {
         | "transferencia"
         | "outros"
       purchase_type: "avista" | "parcelada" | "recorrente"
+      receivable_status: "a_receber" | "recebido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -585,6 +637,7 @@ export const Constants = {
         "outros",
       ],
       purchase_type: ["avista", "parcelada", "recorrente"],
+      receivable_status: ["a_receber", "recebido"],
     },
   },
 } as const

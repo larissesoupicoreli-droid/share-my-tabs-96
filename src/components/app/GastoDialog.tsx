@@ -6,12 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { gastoCategoriasQuery, PAYMENT_METHODS, type Gasto, type PaymentMethod } from "@/lib/gastos";
 import { responsaveisQuery } from "@/lib/data";
 import { monthLabel } from "@/lib/finance";
+import { addMonths, addMonthsToDate } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 const NOVA = "__nova__";
 
@@ -40,6 +42,8 @@ export function GastoDialog({
     forma: (gasto?.forma_pagamento ?? "pix") as PaymentMethod,
     responsavelId: gasto?.responsavel_id ?? "",
     observacao: gasto?.observacao ?? "",
+    recorrente: false,
+    meses: "12",
   });
 
   const [f, setF] = useState(inicial);
@@ -90,12 +94,27 @@ export function GastoDialog({
         if (!data?.length) throw new Error("Não foi possível salvar (sem permissão para editar este gasto).");
         return;
       }
-      const { data: user } = await supabase.auth.getUser();
-      const { error } = await supabase.from("gastos").insert({ ...payload, created_by: user.user!.id });
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) throw new Error("Entre novamente para salvar o gasto.");
+      const totalMeses = f.recorrente ? Math.max(2, Math.min(120, Number(f.meses) || 0)) : 1;
+      if (f.recorrente && (!Number.isInteger(Number(f.meses)) || Number(f.meses) < 2 || Number(f.meses) > 120)) {
+        throw new Error("Informe uma quantidade entre 2 e 120 meses.");
+      }
+      const serieId = f.recorrente ? crypto.randomUUID() : null;
+      const rows = Array.from({ length: totalMeses }, (_, index) => ({
+        ...payload,
+        data_gasto: addMonthsToDate(f.data, index),
+        mes_referencia: addMonths(`${f.mesRef.slice(0, 7)}-01`, index),
+        created_by: userData.user.id,
+        recorrencia_id: serieId,
+        recorrencia_numero: f.recorrente ? index + 1 : null,
+        recorrencia_total: f.recorrente ? totalMeses : null,
+      }));
+      const { error } = await supabase.from("gastos").insert(rows);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      toast.success(modo === "editar" ? "Gasto atualizado." : "Gasto lançado.");
+      toast.success(modo === "editar" ? "Gasto atualizado." : f.recorrente ? `${f.meses} gastos mensais criados.` : "Gasto lançado.");
       qc.invalidateQueries();
       setOpen(false);
     },
@@ -117,8 +136,7 @@ export function GastoDialog({
             {modo === "editar" ? "Editar gasto" : modo === "duplicar" ? "Duplicar gasto" : "Novo gasto do mês"}
           </DialogTitle>
           <DialogDescription>
-            Gastos pagos fora do cartão de crédito. Cada lançamento vale só para o mês escolhido — nada é repetido
-            automaticamente.
+            Gastos pagos fora do cartão de crédito. Você decide se o lançamento acontece uma vez ou se repete por alguns meses.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,6 +208,22 @@ export function GastoDialog({
             <Label>Observação</Label>
             <Textarea value={f.observacao} onChange={(e) => set("observacao", e.target.value)} rows={2} />
           </div>
+          {modo !== "editar" ? (
+            <div className="flex items-center justify-between gap-4 border-t border-border pt-4 sm:col-span-2">
+              <div>
+                <Label htmlFor="gasto-recorrente">Gasto recorrente</Label>
+                <p className="text-xs text-muted-foreground">Cria um lançamento separado em cada mês.</p>
+              </div>
+              <Switch id="gasto-recorrente" checked={f.recorrente} onCheckedChange={(checked) => set("recorrente", checked)} />
+            </div>
+          ) : null}
+          {modo !== "editar" && f.recorrente ? (
+            <div className="grid gap-2 sm:col-span-2">
+              <Label>Quantidade de meses</Label>
+              <Input type="number" min={2} max={120} value={f.meses} onChange={(event) => set("meses", event.target.value)} />
+              <p className="text-xs text-muted-foreground">Exemplo: 48 cria este gasto no mês escolhido e nos 47 meses seguintes.</p>
+            </div>
+          ) : null}
         </div>
 
         <Button size="lg" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
