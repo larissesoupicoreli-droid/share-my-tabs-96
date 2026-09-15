@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
+import { RecebivelDialog } from "@/components/app/RecebivelDialog";
+import { recebiveisQuery } from "@/lib/recebiveis";
 import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
