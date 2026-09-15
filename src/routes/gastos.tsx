@@ -45,9 +45,17 @@ export const Route = createFileRoute("/gastos")({
 
 function GastosPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [mes, setMes] = useState(currentMonthKey());
   const [filtro, setFiltro] = useState("todas");
   const [ordem, setOrdem] = useState<"asc" | "desc">("asc");
+
+  const { data: perfil, isLoading: perfilLoading } = useQuery(meuPerfilQuery);
+  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase() === "larisse";
+
+  useEffect(() => {
+    if (!perfilLoading && perfil && !isLarisse) navigate({ to: "/" });
+  }, [perfilLoading, perfil, isLarisse, navigate]);
 
   const { data: gastos = [] } = useQuery(gastosQuery);
   const { data: categorias = [] } = useQuery(gastoCategoriasQuery);
