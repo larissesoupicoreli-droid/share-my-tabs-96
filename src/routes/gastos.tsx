@@ -157,6 +157,14 @@ function GastosPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  if (perfilLoading || !isLarisse) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
+
   return (
     <AppShell title="Gastos do mês" subtitle={`Controle da Larisse — ${monthLabel(mes)}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
