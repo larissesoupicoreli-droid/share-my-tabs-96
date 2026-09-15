@@ -107,6 +107,35 @@ function GastosPage() {
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
   const totalMes = totalFora + totalCartoes;
 
+  const receitasMes = useMemo(
+    () =>
+      recebiveis
+        .filter((r) => r.mes_referencia === mes)
+        .sort((a, b) => a.data_prevista.localeCompare(b.data_prevista)),
+    [recebiveis, mes],
+  );
+  const totalRecebido = receitasMes
+    .filter((r) => r.status === "recebido")
+    .reduce((s, r) => s + Number(r.valor), 0);
+  const totalAReceber = receitasMes
+    .filter((r) => r.status === "a_receber")
+    .reduce((s, r) => s + Number(r.valor), 0);
+  const saldoMes = totalRecebido - totalMes;
+
+  const excluirReceita = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.from("recebiveis").delete().eq("id", id).select("id");
+      if (error) throw new Error(error.message);
+      if (!data?.length) throw new Error("Não foi possível excluir (sem permissão para esta receita).");
+    },
+    onSuccess: () => {
+      toast.success("Receita excluída.");
+      qc.invalidateQueries({ queryKey: ["recebiveis"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   const excluir = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase.from("gastos").delete().eq("id", id).select("id");
