@@ -56,6 +56,7 @@ function GastosPage() {
   const { data: rateios = [] } = useQuery(rateiosQuery);
   const { data: cartoes = [] } = useQuery(cartoesQuery);
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
+  const { data: recebiveis = [] } = useQuery(recebiveisQuery);
 
   // Controle da Larisse: cartões mostram somente a parte dela em cada fatura.
   const larisseId = responsaveis.find((r) => r.nome.trim().toLowerCase() === "larisse")?.id ?? null;
