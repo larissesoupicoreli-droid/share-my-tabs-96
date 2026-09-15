@@ -401,6 +401,18 @@ function GastosPage() {
               <span className="font-semibold">Total gasto no mês</span>
               <span className="num font-semibold">{money(totalMes)}</span>
             </div>
+            <div className="mt-2 flex justify-between border-t border-border pt-3">
+              <span>Receitas recebidas</span>
+              <span className="num font-medium">{money(totalRecebido)}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Ainda a receber</span>
+              <span className="num">{money(totalAReceber)}</span>
+            </div>
+            <div className="mt-2 flex justify-between border-t border-border pt-3 text-base">
+              <span className="font-semibold">Saldo do mês</span>
+              <span className={`num font-semibold ${saldoMes < 0 ? "text-destructive" : ""}`}>{money(saldoMes)}</span>
+            </div>
           </div>
         </div>
 
