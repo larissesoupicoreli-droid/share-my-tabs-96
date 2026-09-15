@@ -47,7 +47,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
             <h2 className="mt-1 text-lg font-semibold">Cartões & Faturas</h2>
           </div>
           <nav className="flex flex-col gap-1">
-            {nav.map((item) => (
+            {nav.filter((item) => !("somenteLarisse" in item && item.somenteLarisse) || isLarisse).map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
