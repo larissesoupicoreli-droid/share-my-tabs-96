@@ -171,6 +171,117 @@ function GastosPage() {
         </div>
       </div>
 
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Recebido no mês</p>
+          <p className="num mt-2 text-2xl font-semibold">{money(totalRecebido)}</p>
+        </div>
+        <div className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Ainda a receber</p>
+          <p className="num mt-2 text-2xl font-semibold">{money(totalAReceber)}</p>
+        </div>
+        <div className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Saldo do mês</p>
+          <p className={`num mt-2 text-2xl font-semibold ${saldoMes < 0 ? "text-destructive" : ""}`}>
+            {money(saldoMes)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Recebido menos todos os gastos do mês.</p>
+        </div>
+      </div>
+
+      <div className="surface-card mt-5 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <div>
+            <h3 className="text-sm font-semibold">Recebíveis — {monthLabel(mes)}</h3>
+            <p className="text-xs text-muted-foreground">Salário, comissões, extras e outras receitas do mês.</p>
+          </div>
+          <RecebivelDialog mes={mes} />
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data prevista</TableHead>
+                <TableHead>Receita</TableHead>
+                <TableHead>Situação</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {receitasMes.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="num">{dateLabel(r.data_prevista)}</TableCell>
+                  <TableCell>
+                    <p className="font-medium">{r.descricao}</p>
+                    {r.observacao ? <p className="text-xs text-muted-foreground">{r.observacao}</p> : null}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {r.status === "recebido"
+                      ? `Recebido${r.data_recebimento ? ` em ${dateLabel(r.data_recebimento)}` : ""}`
+                      : "A receber"}
+                  </TableCell>
+                  <TableCell className="num text-right font-medium">{money(Number(r.valor))}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <RecebivelDialog
+                        mes={mes}
+                        recebivel={r}
+                        modo="editar"
+                        trigger={
+                          <Button size="icon" variant="outline" aria-label="Editar receita">
+                            <Pencil className="size-4" />
+                          </Button>
+                        }
+                      />
+                      <RecebivelDialog
+                        mes={mes}
+                        recebivel={r}
+                        modo="duplicar"
+                        trigger={
+                          <Button size="icon" variant="outline" aria-label="Duplicar receita">
+                            <Copy className="size-4" />
+                          </Button>
+                        }
+                      />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="icon" variant="outline" aria-label="Excluir receita">
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir receita</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              “{r.descricao}” de {money(Number(r.valor))} será removida deste mês.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => excluirReceita.mutate(r.id)}>Excluir</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        {receitasMes.length === 0 ? (
+          <p className="p-6 text-sm text-muted-foreground">
+            Nenhuma receita neste mês. Use “Adicionar receita” para lançar salário, comissões e extras.
+          </p>
+        ) : (
+          <div className="flex justify-between border-t border-border px-4 py-3 text-sm">
+            <span className="font-medium">Total de receitas</span>
+            <span className="num font-semibold">{money(totalRecebido + totalAReceber)}</span>
+          </div>
+        )}
+      </div>
+
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Select value={filtro} onValueChange={setFiltro}>
           <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
