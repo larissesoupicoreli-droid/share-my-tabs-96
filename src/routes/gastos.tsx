@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { GastoDialog } from "@/components/app/GastoDialog";
 import { RecebivelDialog } from "@/components/app/RecebivelDialog";
 import { recebiveisQuery } from "@/lib/recebiveis";
 import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
-import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
+import { gastoCategoriasQuery, gastosQuery, meuPerfilQuery, paymentLabel } from "@/lib/gastos";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
