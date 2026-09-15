@@ -51,7 +51,7 @@ function GastosPage() {
   const [ordem, setOrdem] = useState<"asc" | "desc">("asc");
 
   const { data: perfil, isLoading: perfilLoading } = useQuery(meuPerfilQuery);
-  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase() === "larisse";
+  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase().startsWith("larisse");
 
   useEffect(() => {
     if (!perfilLoading && perfil && !isLarisse) navigate({ to: "/" });
