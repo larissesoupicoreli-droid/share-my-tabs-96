@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { GastoDialog } from "@/components/app/GastoDialog";
 import { RecebivelDialog } from "@/components/app/RecebivelDialog";
 import { recebiveisQuery } from "@/lib/recebiveis";
 import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
-import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
+import { gastoCategoriasQuery, gastosQuery, meuPerfilQuery, paymentLabel } from "@/lib/gastos";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -45,9 +45,17 @@ export const Route = createFileRoute("/gastos")({
 
 function GastosPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [mes, setMes] = useState(currentMonthKey());
   const [filtro, setFiltro] = useState("todas");
   const [ordem, setOrdem] = useState<"asc" | "desc">("asc");
+
+  const { data: perfil, isLoading: perfilLoading } = useQuery(meuPerfilQuery);
+  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase() === "larisse";
+
+  useEffect(() => {
+    if (!perfilLoading && perfil && !isLarisse) navigate({ to: "/" });
+  }, [perfilLoading, perfil, isLarisse, navigate]);
 
   const { data: gastos = [] } = useQuery(gastosQuery);
   const { data: categorias = [] } = useQuery(gastoCategoriasQuery);
@@ -148,6 +156,14 @@ function GastosPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (perfilLoading || !isLarisse) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
 
   return (
     <AppShell title="Gastos do mês" subtitle={`Controle da Larisse — ${monthLabel(mes)}`}>

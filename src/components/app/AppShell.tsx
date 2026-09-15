@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CreditCard, LayoutDashboard, Receipt, CalendarClock, User, LogOut, Menu, PiggyBank } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
+import { meuPerfilQuery } from "@/lib/gastos";
 import { Button } from "@/components/ui/button";
 import { NovaCompraDialog } from "./NovaCompraDialog";
 
@@ -11,12 +13,14 @@ const nav = [
   { to: "/fatura", label: "Divisão da fatura", icon: Receipt },
   { to: "/futuro", label: "Parcelas futuras", icon: CalendarClock },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
-  { to: "/gastos", label: "Gastos do mês", icon: PiggyBank },
+  { to: "/gastos", label: "Gastos do mês", icon: PiggyBank, somenteLarisse: true },
   { to: "/meu-financeiro", label: "Meu financeiro", icon: User },
 ] as const;
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { session, loading } = useSession();
+  const { data: perfil } = useQuery(meuPerfilQuery);
+  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase() === "larisse";
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -43,7 +47,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
             <h2 className="mt-1 text-lg font-semibold">Cartões & Faturas</h2>
           </div>
           <nav className="flex flex-col gap-1">
-            {nav.map((item) => (
+            {nav.filter((item) => !("somenteLarisse" in item && item.somenteLarisse) || isLarisse).map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
