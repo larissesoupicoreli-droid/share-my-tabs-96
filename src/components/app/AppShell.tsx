@@ -20,7 +20,7 @@ const nav = [
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { session, loading } = useSession();
   const { data: perfil } = useQuery(meuPerfilQuery);
-  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase() === "larisse";
+  const isLarisse = (perfil?.nome ?? "").trim().toLowerCase().startsWith("larisse");
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
