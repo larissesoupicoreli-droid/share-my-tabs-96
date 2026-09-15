@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
+import { RecebivelDialog } from "@/components/app/RecebivelDialog";
+import { recebiveisQuery } from "@/lib/recebiveis";
 import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { gastoCategoriasQuery, gastosQuery, paymentLabel } from "@/lib/gastos";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
@@ -54,6 +56,7 @@ function GastosPage() {
   const { data: rateios = [] } = useQuery(rateiosQuery);
   const { data: cartoes = [] } = useQuery(cartoesQuery);
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
+  const { data: recebiveis = [] } = useQuery(recebiveisQuery);
 
   // Controle da Larisse: cartões mostram somente a parte dela em cada fatura.
   const larisseId = responsaveis.find((r) => r.nome.trim().toLowerCase() === "larisse")?.id ?? null;
@@ -104,6 +107,35 @@ function GastosPage() {
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
   const totalMes = totalFora + totalCartoes;
 
+  const receitasMes = useMemo(
+    () =>
+      recebiveis
+        .filter((r) => r.mes_referencia === mes)
+        .sort((a, b) => a.data_prevista.localeCompare(b.data_prevista)),
+    [recebiveis, mes],
+  );
+  const totalRecebido = receitasMes
+    .filter((r) => r.status === "recebido")
+    .reduce((s, r) => s + Number(r.valor), 0);
+  const totalAReceber = receitasMes
+    .filter((r) => r.status === "a_receber")
+    .reduce((s, r) => s + Number(r.valor), 0);
+  const saldoMes = totalRecebido - totalMes;
+
+  const excluirReceita = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.from("recebiveis").delete().eq("id", id).select("id");
+      if (error) throw new Error(error.message);
+      if (!data?.length) throw new Error("Não foi possível excluir (sem permissão para esta receita).");
+    },
+    onSuccess: () => {
+      toast.success("Receita excluída.");
+      qc.invalidateQueries({ queryKey: ["recebiveis"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   const excluir = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase.from("gastos").delete().eq("id", id).select("id");
@@ -137,6 +169,117 @@ function GastosPage() {
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Cartões (parte da Larisse)</p>
           <p className="num mt-2 text-2xl font-semibold">{money(totalCartoes)}</p>
         </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Recebido no mês</p>
+          <p className="num mt-2 text-2xl font-semibold">{money(totalRecebido)}</p>
+        </div>
+        <div className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Ainda a receber</p>
+          <p className="num mt-2 text-2xl font-semibold">{money(totalAReceber)}</p>
+        </div>
+        <div className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Saldo do mês</p>
+          <p className={`num mt-2 text-2xl font-semibold ${saldoMes < 0 ? "text-destructive" : ""}`}>
+            {money(saldoMes)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Recebido menos todos os gastos do mês.</p>
+        </div>
+      </div>
+
+      <div className="surface-card mt-5 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <div>
+            <h3 className="text-sm font-semibold">Recebíveis — {monthLabel(mes)}</h3>
+            <p className="text-xs text-muted-foreground">Salário, comissões, extras e outras receitas do mês.</p>
+          </div>
+          <RecebivelDialog mes={mes} />
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data prevista</TableHead>
+                <TableHead>Receita</TableHead>
+                <TableHead>Situação</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {receitasMes.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="num">{dateLabel(r.data_prevista)}</TableCell>
+                  <TableCell>
+                    <p className="font-medium">{r.descricao}</p>
+                    {r.observacao ? <p className="text-xs text-muted-foreground">{r.observacao}</p> : null}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {r.status === "recebido"
+                      ? `Recebido${r.data_recebimento ? ` em ${dateLabel(r.data_recebimento)}` : ""}`
+                      : "A receber"}
+                  </TableCell>
+                  <TableCell className="num text-right font-medium">{money(Number(r.valor))}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <RecebivelDialog
+                        mes={mes}
+                        recebivel={r}
+                        modo="editar"
+                        trigger={
+                          <Button size="icon" variant="outline" aria-label="Editar receita">
+                            <Pencil className="size-4" />
+                          </Button>
+                        }
+                      />
+                      <RecebivelDialog
+                        mes={mes}
+                        recebivel={r}
+                        modo="duplicar"
+                        trigger={
+                          <Button size="icon" variant="outline" aria-label="Duplicar receita">
+                            <Copy className="size-4" />
+                          </Button>
+                        }
+                      />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="icon" variant="outline" aria-label="Excluir receita">
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir receita</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              “{r.descricao}” de {money(Number(r.valor))} será removida deste mês.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => excluirReceita.mutate(r.id)}>Excluir</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        {receitasMes.length === 0 ? (
+          <p className="p-6 text-sm text-muted-foreground">
+            Nenhuma receita neste mês. Use “Adicionar receita” para lançar salário, comissões e extras.
+          </p>
+        ) : (
+          <div className="flex justify-between border-t border-border px-4 py-3 text-sm">
+            <span className="font-medium">Total de receitas</span>
+            <span className="num font-semibold">{money(totalRecebido + totalAReceber)}</span>
+          </div>
+        )}
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -257,6 +400,18 @@ function GastosPage() {
             <div className="mt-2 flex justify-between border-t border-border pt-3 text-base">
               <span className="font-semibold">Total gasto no mês</span>
               <span className="num font-semibold">{money(totalMes)}</span>
+            </div>
+            <div className="mt-2 flex justify-between border-t border-border pt-3">
+              <span>Receitas recebidas</span>
+              <span className="num font-medium">{money(totalRecebido)}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Ainda a receber</span>
+              <span className="num">{money(totalAReceber)}</span>
+            </div>
+            <div className="mt-2 flex justify-between border-t border-border pt-3 text-base">
+              <span className="font-semibold">Saldo do mês</span>
+              <span className={`num font-semibold ${saldoMes < 0 ? "text-destructive" : ""}`}>{money(saldoMes)}</span>
             </div>
           </div>
         </div>
