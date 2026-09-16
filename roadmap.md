@@ -5,6 +5,3 @@
 - [x] Permitir criar gastos recorrentes por uma quantidade definida de meses
 - [x] Adicionar recebíveis mensais com status recebido ou a receber
 - [x] Incluir receitas, despesas e saldo no fechamento mensal da Larisse
-- [ ] Atualizar a identidade visual global conforme o modelo aprovado
-- [ ] Refinar dashboard, navegação e adaptação para celular
-- [ ] Validar as telas principais após a atualização visual
