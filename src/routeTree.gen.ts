@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CarroRouteImport } from './routes/carro'
 import { Route as CartoesRouteImport } from './routes/cartoes'
 import { Route as ComprasRouteImport } from './routes/compras'
 import { Route as FaturaRouteImport } from './routes/fatura'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarroRoute = CarroRouteImport.update({
+  id: '/carro',
+  path: '/carro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartoesRoute = CartoesRouteImport.update({
@@ -62,6 +68,7 @@ const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/carro': typeof CarroRoute
   '/cartoes': typeof CartoesRoute
   '/compras': typeof ComprasRoute
   '/fatura': typeof FaturaRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/carro': typeof CarroRoute
   '/cartoes': typeof CartoesRoute
   '/compras': typeof ComprasRoute
   '/fatura': typeof FaturaRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/carro': typeof CarroRoute
   '/cartoes': typeof CartoesRoute
   '/compras': typeof ComprasRoute
   '/fatura': typeof FaturaRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/carro'
     | '/cartoes'
     | '/compras'
     | '/fatura'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/carro'
     | '/cartoes'
     | '/compras'
     | '/fatura'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/carro'
     | '/cartoes'
     | '/compras'
     | '/fatura'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CarroRoute: typeof CarroRoute
   CartoesRoute: typeof CartoesRoute
   ComprasRoute: typeof ComprasRoute
   FaturaRoute: typeof FaturaRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carro': {
+      id: '/carro'
+      path: '/carro'
+      fullPath: '/carro'
+      preLoaderRoute: typeof CarroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cartoes': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CarroRoute: CarroRoute,
   CartoesRoute: CartoesRoute,
   ComprasRoute: ComprasRoute,
   FaturaRoute: FaturaRoute,
