@@ -14,6 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      carro_objetivos: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_inicio: string
+          descricao: string | null
+          dia_vencimento: number
+          forma_pagamento: Database["public"]["Enums"]["payment_method"]
+          id: string
+          nome: string
+          observacao: string | null
+          primeira_parcela_valor: number | null
+          qtd_parcelas: number
+          updated_at: string
+          valor_total: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          data_inicio: string
+          descricao?: string | null
+          dia_vencimento?: number
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
+          id?: string
+          nome?: string
+          observacao?: string | null
+          primeira_parcela_valor?: number | null
+          qtd_parcelas?: number
+          updated_at?: string
+          valor_total?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_inicio?: string
+          descricao?: string | null
+          dia_vencimento?: number
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
+          id?: string
+          nome?: string
+          observacao?: string | null
+          primeira_parcela_valor?: number | null
+          qtd_parcelas?: number
+          updated_at?: string
+          valor_total?: number
+        }
+        Relationships: []
+      }
+      carro_parcelas: {
+        Row: {
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          forma_pagamento: Database["public"]["Enums"]["payment_method"]
+          id: string
+          numero: number
+          objetivo_id: string
+          observacao: string | null
+          pago: boolean
+          total: number
+          valor_previsto: number
+        }
+        Insert: {
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
+          id?: string
+          numero: number
+          objetivo_id: string
+          observacao?: string | null
+          pago?: boolean
+          total: number
+          valor_previsto: number
+        }
+        Update: {
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"]
+          id?: string
+          numero?: number
+          objetivo_id?: string
+          observacao?: string | null
+          pago?: boolean
+          total?: number
+          valor_previsto?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carro_parcelas_objetivo_id_fkey"
+            columns: ["objetivo_id"]
+            isOneToOne: false
+            referencedRelation: "carro_objetivos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cartoes: {
         Row: {
           ativo: boolean
