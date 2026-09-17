@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CreditCard, LayoutDashboard, Receipt, CalendarClock, User, LogOut, Menu, PiggyBank } from "lucide-react";
+import { CreditCard, LayoutDashboard, Receipt, CalendarClock, User, LogOut, Menu, PiggyBank, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { meuPerfilQuery } from "@/lib/gastos";
@@ -14,8 +14,10 @@ const nav = [
   { to: "/futuro", label: "Parcelas futuras", icon: CalendarClock },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/gastos", label: "Gastos do mês", icon: PiggyBank, somenteLarisse: true },
+  { to: "/carro", label: "Meu Carro 🚗", icon: Car, somenteLarisse: true },
   { to: "/meu-financeiro", label: "Meu financeiro", icon: User },
 ] as const;
+
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { session, loading } = useSession();
