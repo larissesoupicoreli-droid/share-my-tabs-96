@@ -1,3 +1,4 @@
+import { parseValor } from "@/lib/finance";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Users } from "lucide-react";
@@ -38,7 +39,7 @@ export function NovaCompraDialog() {
 
   const cartao = cartoes.find((c) => c.id === cartaoId);
   const titular = responsaveis.find((r) => r.id === cartao?.titular_id);
-  const valorNum = Number(valor.replace(",", ".")) || 0;
+  const valorNum = parseValor(valor);
   // Uma compra lançada com atraso não pode cair numa fatura que já fechou:
   // a sugestão nunca recua para antes da fatura aberta atual.
   const mesSugerido = cartao
@@ -60,7 +61,7 @@ export function NovaCompraDialog() {
     });
   }, [cartao, valorNum, tipo, data, qtd, recFim, mesRef]);
 
-  const rateioTotal = Object.values(rateio).reduce((s, v) => s + (Number(v.replace(",", ".")) || 0), 0);
+  const rateioTotal = Object.values(rateio).reduce((s, v) => s + parseValor(v), 0);
 
   const reset = () => {
     setDescricao("");
@@ -81,7 +82,7 @@ export function NovaCompraDialog() {
       if (valorNum <= 0) throw new Error("Informe o valor.");
       if (!usarRateio && !responsavelId) throw new Error("Informe o responsável pela compra.");
       const rateioRows = Object.entries(rateio)
-        .map(([responsavel_id, v]) => ({ responsavel_id, valor: Number(v.replace(",", ".")) || 0 }))
+        .map(([responsavel_id, v]) => ({ responsavel_id, valor: parseValor(v) }))
         .filter((r) => r.valor > 0);
       if (usarRateio) {
         if (rateioRows.length < 2) throw new Error("O rateio precisa de pelo menos 2 responsáveis.");
