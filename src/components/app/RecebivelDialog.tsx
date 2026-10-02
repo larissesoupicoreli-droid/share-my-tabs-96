@@ -45,7 +45,7 @@ export function RecebivelDialog({
 
   const salvar = useMutation({
     mutationFn: async () => {
-      const valor = Number(f.valor.replace(",", ".")) || 0;
+      const valor = Number(f.valor.replace(/\./g, "").replace(",", ".")) || 0;
       if (!f.descricao.trim()) throw new Error("Informe a descrição da receita.");
       if (valor <= 0) throw new Error("Informe o valor da receita.");
       const payload = {
