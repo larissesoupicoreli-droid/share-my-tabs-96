@@ -9,6 +9,8 @@ import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
 import { RecebivelDialog } from "@/components/app/RecebivelDialog";
 import { recebiveisQuery } from "@/lib/recebiveis";
+import { carroParcelasQuery, parcelaStatus } from "@/lib/carro";
+import { Link } from "@tanstack/react-router";
 import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { gastoCategoriasQuery, gastosQuery, meuPerfilQuery, paymentLabel } from "@/lib/gastos";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
@@ -65,6 +67,7 @@ function GastosPage() {
   const { data: cartoes = [] } = useQuery(cartoesQuery);
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
   const { data: recebiveis = [] } = useQuery(recebiveisQuery);
+  const { data: carroParcelas = [] } = useQuery(carroParcelasQuery);
 
   // Controle da Larisse: cartões mostram somente a parte dela em cada fatura.
   const larisseId = responsaveis.find((r) => r.nome.trim().toLowerCase() === "larisse")?.id ?? null;
@@ -93,9 +96,12 @@ function GastosPage() {
       const nome = catNome(g.categoria_id);
       map.set(nome, (map.get(nome) ?? 0) + Number(g.valor));
     }
+    for (const p of carroParcelas.filter((x) => x.data_vencimento.slice(0, 7) === mes.slice(0, 7))) {
+      map.set("Carro", (map.get("Carro") ?? 0) + Number(p.valor_previsto));
+    }
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gastos, mes, categorias]);
+  }, [gastos, mes, categorias, carroParcelas]);
 
   const porCartao = useMemo(() => {
     const doMesParcelas = parcelasAll.filter((p) => p.mes_referencia === mes && p.status !== "cancelado");
@@ -113,7 +119,14 @@ function GastosPage() {
   }, [parcelasAll, compras, rateios, cartoes, mes, larisseId]);
 
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
-  const totalMes = totalFora + totalCartoes;
+  const hojeStr = new Date().toISOString().slice(0, 10);
+  const carroMes = carroParcelas.filter((p) => p.data_vencimento.slice(0, 7) === mes.slice(0, 7));
+  const totalCarro = carroMes.reduce((s, p) => s + Number(p.valor_previsto), 0);
+  const totalMes = totalFora + totalCartoes + totalCarro;
+  const possivelDuplicado =
+    carroMes.length > 0 &&
+    gastos.some((g) => g.mes_referencia === mes && catNome(g.categoria_id).toLowerCase() === "carro" && g.descricao.toLowerCase().includes("carro"));
+  const statusLabel = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" } as const;
 
   const receitasMes = useMemo(
     () =>
@@ -186,6 +199,41 @@ function GastosPage() {
           <p className="num mt-2 text-2xl font-semibold">{money(totalCartoes)}</p>
         </div>
       </div>
+
+      {carroMes.length > 0 ? (
+        <div className="surface-card mt-4 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold">Meu Carro 🚗</h3>
+            <Link to="/carro" className="text-xs font-medium text-primary underline-offset-4 hover:underline">
+              Marcar pagamento no Meu Carro
+            </Link>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {carroMes.map((p) => {
+              const st = parcelaStatus(p, hojeStr);
+              return (
+                <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span>
+                    Parcela {String(p.numero).padStart(2, "0")}/{p.total} · vence {dateLabel(p.data_vencimento)}
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${st === "pago" ? "bg-secondary text-foreground" : st === "atrasado" ? "bg-destructive/10 text-destructive" : "bg-accent/15 text-foreground"}`}>
+                      {statusLabel[st]}
+                    </span>
+                    <span className="num font-medium">{money(Number(p.valor_previsto))}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {possivelDuplicado ? (
+            <p className="mt-3 text-xs text-destructive">
+              Parece que o carro também foi lançado como gasto neste mês. Exclua esse lançamento para não somar duas vezes.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <div className="surface-card p-5">
@@ -413,6 +461,12 @@ function GastosPage() {
               <span>Total nos cartões</span>
               <span className="num font-medium">{money(totalCartoes)}</span>
             </div>
+            {totalCarro > 0 ? (
+              <div className="flex justify-between">
+                <span>Carro (parcela do mês)</span>
+                <span className="num font-medium">{money(totalCarro)}</span>
+              </div>
+            ) : null}
             <div className="mt-2 flex justify-between border-t border-border pt-3 text-base">
               <span className="font-semibold">Total gasto no mês</span>
               <span className="num font-semibold">{money(totalMes)}</span>
@@ -447,7 +501,7 @@ function GastosPage() {
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full bg-accent"
-                    style={{ width: `${totalFora ? (valor / totalFora) * 100 : 0}%` }}
+                    style={{ width: `${totalFora + totalCarro ? (valor / (totalFora + totalCarro)) * 100 : 0}%` }}
                   />
                 </div>
               </div>
