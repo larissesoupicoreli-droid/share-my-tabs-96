@@ -501,7 +501,7 @@ function GastosPage() {
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full bg-accent"
-                    style={{ width: `${totalFora ? (valor / totalFora) * 100 : 0}%` }}
+                    style={{ width: `${totalFora + totalCarro ? (valor / (totalFora + totalCarro)) * 100 : 0}%` }}
                   />
                 </div>
               </div>
