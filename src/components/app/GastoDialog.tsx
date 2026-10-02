@@ -1,3 +1,4 @@
+import { parseValor } from "@/lib/finance";
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -61,7 +62,7 @@ export function GastoDialog({
 
   const salvar = useMutation({
     mutationFn: async () => {
-      const valorNum = Number(f.valor.replace(",", ".")) || 0;
+      const valorNum = parseValor(f.valor);
       if (!f.descricao.trim()) throw new Error("Informe a descrição.");
       if (valorNum <= 0) throw new Error("Informe o valor.");
 

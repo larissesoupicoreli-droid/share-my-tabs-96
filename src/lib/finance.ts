@@ -158,3 +158,8 @@ export function installmentShares(
     return { responsavel_id: r.responsavel_id, valor: part / 100 };
   });
 }
+/** Converte "3.500,00", "3500,5" ou "3500.50" em número. */
+export const parseValor = (v: string | number) => {
+  const s = String(v).trim();
+  return Number(s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s) || 0;
+};

@@ -1,3 +1,4 @@
+import { parseValor } from "@/lib/finance";
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -45,7 +46,7 @@ export function RecebivelDialog({
 
   const salvar = useMutation({
     mutationFn: async () => {
-      const valor = Number(f.valor.replace(",", ".")) || 0;
+      const valor = parseValor(f.valor);
       if (!f.descricao.trim()) throw new Error("Informe a descrição da receita.");
       if (valor <= 0) throw new Error("Informe o valor da receita.");
       const payload = {

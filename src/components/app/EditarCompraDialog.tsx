@@ -1,3 +1,4 @@
+import { parseValor } from "@/lib/finance";
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
@@ -45,7 +46,7 @@ export function EditarCompraDialog({
   );
 
   const cartao = cartoes.find((c) => c.id === cartaoId);
-  const valorNum = Number(String(valor).replace(",", ".")) || 0;
+  const valorNum = parseValor(valor);
 
   const preview = useMemo(() => {
     if (!cartao || !valorNum) return [];
