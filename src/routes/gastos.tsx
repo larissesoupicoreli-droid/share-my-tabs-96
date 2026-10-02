@@ -96,9 +96,12 @@ function GastosPage() {
       const nome = catNome(g.categoria_id);
       map.set(nome, (map.get(nome) ?? 0) + Number(g.valor));
     }
+    for (const p of carroParcelas.filter((x) => x.data_vencimento.slice(0, 7) === mes.slice(0, 7))) {
+      map.set("Carro", (map.get("Carro") ?? 0) + Number(p.valor_previsto));
+    }
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gastos, mes, categorias]);
+  }, [gastos, mes, categorias, carroParcelas]);
 
   const porCartao = useMemo(() => {
     const doMesParcelas = parcelasAll.filter((p) => p.mes_referencia === mes && p.status !== "cancelado");
@@ -458,6 +461,12 @@ function GastosPage() {
               <span>Total nos cartões</span>
               <span className="num font-medium">{money(totalCartoes)}</span>
             </div>
+            {totalCarro > 0 ? (
+              <div className="flex justify-between">
+                <span>Carro (parcela do mês)</span>
+                <span className="num font-medium">{money(totalCarro)}</span>
+              </div>
+            ) : null}
             <div className="mt-2 flex justify-between border-t border-border pt-3 text-base">
               <span className="font-semibold">Total gasto no mês</span>
               <span className="num font-semibold">{money(totalMes)}</span>
