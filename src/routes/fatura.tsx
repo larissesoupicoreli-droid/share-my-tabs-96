@@ -104,8 +104,25 @@ function FaturaPage() {
   const sharesFiltradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     if (!termo) return shares;
-    return shares.filter((s) => (s.compra?.descricao ?? "").toLowerCase().includes(termo));
-  }, [shares, busca]);
+    return shares.filter((s) => {
+      const cat = categorias.find((c) => c.id === (s.compra?.categoria_id ?? s.parcela.categoria_id))?.nome ?? "";
+      const texto = [
+        s.compra?.descricao,
+        s.compra?.observacao,
+        nomeResp(s.responsavel_id),
+        cat,
+        s.compra ? dateLabel(s.compra.data_compra) : "",
+        s.parcela.total ? `${s.parcela.numero}/${s.parcela.total}` : "recorrente",
+        s.parcela.status === "pago" ? "pago" : "pendente",
+        money(s.valor),
+        s.valor.toFixed(2).replace(".", ","),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return texto.includes(termo);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shares, busca, categorias, responsaveis]);
 
   return (
     <AppShell
