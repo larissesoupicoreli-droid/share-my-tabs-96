@@ -12,6 +12,9 @@ export type Recebivel = {
   data_recebimento: string | null;
   observacao: string | null;
   created_by: string;
+  recorrencia_id: string | null;
+  recorrencia_numero: number | null;
+  recorrencia_total: number | null;
 };
 
 export const recebiveisQuery = {
@@ -19,7 +22,7 @@ export const recebiveisQuery = {
   queryFn: async (): Promise<Recebivel[]> => {
     const { data, error } = await supabase
       .from("recebiveis")
-      .select("id,descricao,valor,data_prevista,mes_referencia,status,data_recebimento,observacao,created_by")
+      .select("id,descricao,valor,data_prevista,mes_referencia,status,data_recebimento,observacao,created_by,recorrencia_id,recorrencia_numero,recorrencia_total")
       .order("data_prevista", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as Recebivel[];
