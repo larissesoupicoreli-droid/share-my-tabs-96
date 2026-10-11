@@ -498,6 +498,9 @@ export type Database = {
           id: string
           mes_referencia: string
           observacao: string | null
+          recorrencia_id: string | null
+          recorrencia_numero: number | null
+          recorrencia_total: number | null
           status: Database["public"]["Enums"]["receivable_status"]
           updated_at: string
           valor: number
@@ -511,6 +514,9 @@ export type Database = {
           id?: string
           mes_referencia: string
           observacao?: string | null
+          recorrencia_id?: string | null
+          recorrencia_numero?: number | null
+          recorrencia_total?: number | null
           status?: Database["public"]["Enums"]["receivable_status"]
           updated_at?: string
           valor: number
@@ -524,6 +530,9 @@ export type Database = {
           id?: string
           mes_referencia?: string
           observacao?: string | null
+          recorrencia_id?: string | null
+          recorrencia_numero?: number | null
+          recorrencia_total?: number | null
           status?: Database["public"]["Enums"]["receivable_status"]
           updated_at?: string
           valor?: number

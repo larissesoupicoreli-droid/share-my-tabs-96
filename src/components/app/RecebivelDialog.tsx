@@ -5,7 +5,8 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Recebivel, RecebivelStatus } from "@/lib/recebiveis";
-import { monthLabel } from "@/lib/finance";
+import { monthLabel, addMonths, addMonthsToDate } from "@/lib/finance";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,8 @@ export function RecebivelDialog({
     status: (recebivel?.status ?? "a_receber") as RecebivelStatus,
     dataRecebimento: recebivel?.data_recebimento ?? "",
     observacao: recebivel?.observacao ?? "",
+    recorrente: false,
+    meses: "12",
   });
   const [f, setF] = useState(inicial);
   const set = <K extends keyof ReturnType<typeof inicial>>(key: K, value: ReturnType<typeof inicial>[K]) =>
@@ -68,11 +71,25 @@ export function RecebivelDialog({
 
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) throw new Error("Entre novamente para salvar a receita.");
-      const { error } = await supabase.from("recebiveis").insert({ ...payload, created_by: userData.user.id });
+      if (f.recorrente && (!Number.isInteger(Number(f.meses)) || Number(f.meses) < 2 || Number(f.meses) > 120)) {
+        throw new Error("Informe uma quantidade entre 2 e 120 meses.");
+      }
+      const totalMeses = f.recorrente ? Number(f.meses) : 1;
+      const serieId = f.recorrente ? crypto.randomUUID() : null;
+      const rows = Array.from({ length: totalMeses }, (_, index) => ({
+        ...payload,
+        data_prevista: addMonthsToDate(f.dataPrevista, index),
+        mes_referencia: addMonths(`${f.mesRef.slice(0, 7)}-01`, index),
+        created_by: userData.user.id,
+        recorrencia_id: serieId,
+        recorrencia_numero: f.recorrente ? index + 1 : null,
+        recorrencia_total: f.recorrente ? totalMeses : null,
+      }));
+      const { error } = await supabase.from("recebiveis").insert(rows);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      toast.success(modo === "editar" ? "Receita atualizada." : "Receita lançada.");
+      toast.success(modo === "editar" ? "Receita atualizada." : f.recorrente ? `${f.meses} receitas mensais criadas.` : "Receita lançada.");
       qc.invalidateQueries({ queryKey: ["recebiveis"] });
       setOpen(false);
     },
@@ -127,6 +144,22 @@ export function RecebivelDialog({
             <Label>Observação</Label>
             <Textarea value={f.observacao} onChange={(event) => set("observacao", event.target.value)} rows={2} />
           </div>
+          {modo !== "editar" ? (
+            <div className="flex items-center justify-between gap-4 border-t border-border pt-4 sm:col-span-2">
+              <div>
+                <Label htmlFor="receita-recorrente">Receita recorrente</Label>
+                <p className="text-xs text-muted-foreground">Cria um lançamento separado em cada mês.</p>
+              </div>
+              <Switch id="receita-recorrente" checked={f.recorrente} onCheckedChange={(checked) => set("recorrente", checked)} />
+            </div>
+          ) : null}
+          {modo !== "editar" && f.recorrente ? (
+            <div className="grid gap-2 sm:col-span-2">
+              <Label>Quantidade de meses</Label>
+              <Input type="number" min={2} max={120} value={f.meses} onChange={(event) => set("meses", event.target.value)} />
+              <p className="text-xs text-muted-foreground">Exemplo: 12 cria esta receita no mês escolhido e nos 11 meses seguintes.</p>
+            </div>
+          ) : null}
         </div>
         <Button size="lg" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
           {salvar.isPending ? "Salvando…" : modo === "editar" ? "Salvar alterações" : "Salvar receita"}
