@@ -5,7 +5,8 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Recebivel, RecebivelStatus } from "@/lib/recebiveis";
-import { monthLabel } from "@/lib/finance";
+import { monthLabel, addMonths, addMonthsToDate } from "@/lib/finance";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,8 @@ export function RecebivelDialog({
     status: (recebivel?.status ?? "a_receber") as RecebivelStatus,
     dataRecebimento: recebivel?.data_recebimento ?? "",
     observacao: recebivel?.observacao ?? "",
+    recorrente: false,
+    meses: "12",
   });
   const [f, setF] = useState(inicial);
   const set = <K extends keyof ReturnType<typeof inicial>>(key: K, value: ReturnType<typeof inicial>[K]) =>
