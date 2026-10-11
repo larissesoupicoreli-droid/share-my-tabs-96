@@ -71,11 +71,25 @@ export function RecebivelDialog({
 
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) throw new Error("Entre novamente para salvar a receita.");
-      const { error } = await supabase.from("recebiveis").insert({ ...payload, created_by: userData.user.id });
+      if (f.recorrente && (!Number.isInteger(Number(f.meses)) || Number(f.meses) < 2 || Number(f.meses) > 120)) {
+        throw new Error("Informe uma quantidade entre 2 e 120 meses.");
+      }
+      const totalMeses = f.recorrente ? Number(f.meses) : 1;
+      const serieId = f.recorrente ? crypto.randomUUID() : null;
+      const rows = Array.from({ length: totalMeses }, (_, index) => ({
+        ...payload,
+        data_prevista: addMonthsToDate(f.dataPrevista, index),
+        mes_referencia: addMonths(`${f.mesRef.slice(0, 7)}-01`, index),
+        created_by: userData.user.id,
+        recorrencia_id: serieId,
+        recorrencia_numero: f.recorrente ? index + 1 : null,
+        recorrencia_total: f.recorrente ? totalMeses : null,
+      }));
+      const { error } = await supabase.from("recebiveis").insert(rows);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      toast.success(modo === "editar" ? "Receita atualizada." : "Receita lançada.");
+      toast.success(modo === "editar" ? "Receita atualizada." : f.recorrente ? `${f.meses} receitas mensais criadas.` : "Receita lançada.");
       qc.invalidateQueries({ queryKey: ["recebiveis"] });
       setOpen(false);
     },
