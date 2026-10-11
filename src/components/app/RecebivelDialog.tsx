@@ -144,6 +144,22 @@ export function RecebivelDialog({
             <Label>Observação</Label>
             <Textarea value={f.observacao} onChange={(event) => set("observacao", event.target.value)} rows={2} />
           </div>
+          {modo !== "editar" ? (
+            <div className="flex items-center justify-between gap-4 border-t border-border pt-4 sm:col-span-2">
+              <div>
+                <Label htmlFor="receita-recorrente">Receita recorrente</Label>
+                <p className="text-xs text-muted-foreground">Cria um lançamento separado em cada mês.</p>
+              </div>
+              <Switch id="receita-recorrente" checked={f.recorrente} onCheckedChange={(checked) => set("recorrente", checked)} />
+            </div>
+          ) : null}
+          {modo !== "editar" && f.recorrente ? (
+            <div className="grid gap-2 sm:col-span-2">
+              <Label>Quantidade de meses</Label>
+              <Input type="number" min={2} max={120} value={f.meses} onChange={(event) => set("meses", event.target.value)} />
+              <p className="text-xs text-muted-foreground">Exemplo: 12 cria esta receita no mês escolhido e nos 11 meses seguintes.</p>
+            </div>
+          ) : null}
         </div>
         <Button size="lg" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
           {salvar.isPending ? "Salvando…" : modo === "editar" ? "Salvar alterações" : "Salvar receita"}
