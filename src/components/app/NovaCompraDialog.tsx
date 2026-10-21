@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cartoesQuery, categoriasQuery, responsaveisQuery } from "@/lib/data";
 import { currentMonthKey, generateInstallments, invoiceMonthFor, money, monthLabel, type PurchaseType } from "@/lib/finance";
+import { getMesAtivo } from "@/lib/mesAtivo";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
