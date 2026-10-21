@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, FileDown, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { MonthPicker } from "@/components/app/MonthPicker";
 import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
 import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
+import { setMesAtivo } from "@/lib/mesAtivo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/fatura")({
 function FaturaPage() {
   const qc = useQueryClient();
   const [mes, setMes] = useState(currentMonthKey());
+  useEffect(() => setMesAtivo(mes), [mes]);
   const [cartaoId, setCartaoId] = useState<string>("");
   const [busca, setBusca] = useState("");
   const { data: cartoes = [] } = useQuery(cartoesQuery);

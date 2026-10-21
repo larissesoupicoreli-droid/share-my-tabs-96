@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { MonthPicker } from "@/components/app/MonthPicker";
 import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
 import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery } from "@/lib/data";
 import { currentMonthKey, dateLabel, money } from "@/lib/finance";
+import { setMesAtivo } from "@/lib/mesAtivo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/compras")({
 function ComprasPage() {
   const qc = useQueryClient();
   const [mes, setMes] = useState(currentMonthKey());
+  useEffect(() => setMesAtivo(mes), [mes]);
   const { data: parcelas = [] } = useQuery(parcelasQuery);
   const { data: compras = [] } = useQuery(comprasQuery);
   const { data: cartoes = [] } = useQuery(cartoesQuery);
