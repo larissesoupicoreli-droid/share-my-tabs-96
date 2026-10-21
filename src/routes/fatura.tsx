@@ -9,6 +9,7 @@ import { MonthPicker } from "@/components/app/MonthPicker";
 import { EditarCompraDialog } from "@/components/app/EditarCompraDialog";
 import { cartoesQuery, categoriasQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
 import { currentMonthKey, dateLabel, money, monthLabel } from "@/lib/finance";
+import { setMesAtivo } from "@/lib/mesAtivo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
