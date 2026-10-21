@@ -20,6 +20,13 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function NovaCompraDialog() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const handleOpenChange = (o: boolean) => {
+    setOpen(o);
+    if (o) {
+      const ativo = getMesAtivo();
+      if (ativo) setMesRefManual(ativo);
+    }
+  };
   const { data: cartoes = [] } = useQuery(cartoesQuery);
   const { data: categorias = [] } = useQuery(categoriasQuery);
   const { data: responsaveis = [] } = useQuery(responsaveisQuery);
@@ -139,7 +146,7 @@ export function NovaCompraDialog() {
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="lg" className="gap-2">
           <Plus className="size-4" /> Nova compra

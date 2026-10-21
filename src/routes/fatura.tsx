@@ -41,6 +41,7 @@ export const Route = createFileRoute("/fatura")({
 function FaturaPage() {
   const qc = useQueryClient();
   const [mes, setMes] = useState(currentMonthKey());
+  useEffect(() => setMesAtivo(mes), [mes]);
   const [cartaoId, setCartaoId] = useState<string>("");
   const [busca, setBusca] = useState("");
   const { data: cartoes = [] } = useQuery(cartoesQuery);
