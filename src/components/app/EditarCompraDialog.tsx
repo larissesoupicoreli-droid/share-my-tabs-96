@@ -38,7 +38,7 @@ export function EditarCompraDialog({
   const [qtd, setQtd] = useState(String(compra.qtd_parcelas || 1));
   const [cartaoId, setCartaoId] = useState(compra.cartao_id);
   const [categoriaId, setCategoriaId] = useState(compra.categoria_id ?? "");
-  const [responsavelId, setResponsavelId] = useState(compra.responsavel_id ?? "");
+  const [responsavelId, setResponsavelId] = useState(temRateio ? "manter-rateio" : compra.responsavel_id ?? "");
   const [observacao, setObservacao] = useState(compra.observacao ?? "");
   const [recFim, setRecFim] = useState(compra.recorrencia_fim ?? "");
   const [mesRef, setMesRef] = useState(
@@ -67,6 +67,8 @@ export function EditarCompraDialog({
       if (!cartao) throw new Error("Selecione o cartão.");
       if (!descricao.trim()) throw new Error("Informe a descrição.");
       if (valorNum <= 0) throw new Error("Informe o valor.");
+      const manterRateio = temRateio && responsavelId === "manter-rateio";
+      const responsavelFinal = manterRateio ? compra.responsavel_id : responsavelId || null;
 
       const { data: upd, error } = await supabase
         .from("compras")
@@ -78,7 +80,7 @@ export function EditarCompraDialog({
           qtd_parcelas: tipo === "parcelada" ? Number(qtd) || 1 : 1,
           cartao_id: cartao.id,
           categoria_id: categoriaId || null,
-          responsavel_id: temRateio ? compra.responsavel_id : responsavelId || null,
+          responsavel_id: responsavelFinal,
           observacao: observacao.trim() || null,
           recorrencia_fim: tipo === "recorrente" && recFim ? recFim : null,
         })
@@ -87,6 +89,26 @@ export function EditarCompraDialog({
       if (error) throw new Error(error.message);
       if (!upd || upd.length === 0)
         throw new Error("Nada foi salvo: sua conta não tem permissão para editar esta compra.");
+
+      if (temRateio && !manterRateio) {
+        const { error: rateioErr } = await supabase.from("rateios").delete().eq("compra_id", compra.id);
+        if (rateioErr) throw new Error(rateioErr.message);
+      }
+
+      // A change of responsibility alone must not reset paid installments.
+      const mesmasParcelas = cartao.id === compra.cartao_id && valorNum === Number(compra.valor_total)
+        && data === compra.data_compra && tipo === compra.tipo
+        && (tipo !== "parcelada" || Number(qtd) === compra.qtd_parcelas)
+        && (tipo !== "recorrente" || (recFim || null) === compra.recorrencia_fim)
+        && mesRef === (mesReferencia ?? compra.data_compra).slice(0, 7) + "-01";
+      if (mesmasParcelas) {
+        const { error: parcelasErr } = await supabase.from("parcelas").update({
+          categoria_id: categoriaId || null,
+          responsavel_id: manterRateio ? null : responsavelFinal,
+        }).eq("compra_id", compra.id);
+        if (parcelasErr) throw new Error(parcelasErr.message);
+        return;
+      }
 
       const { error: delErr } = await supabase.from("parcelas").delete().eq("compra_id", compra.id);
       if (delErr) throw new Error(delErr.message);
@@ -97,13 +119,13 @@ export function EditarCompraDialog({
           compra_id: compra.id,
           cartao_id: cartao.id,
           categoria_id: categoriaId || null,
-          responsavel_id: temRateio ? null : responsavelId || null,
+          responsavel_id: manterRateio ? null : responsavelFinal,
         })),
       );
       if (insErr) throw new Error(insErr.message);
     },
     onSuccess: () => {
-      toast.success("Compra atualizada e parcelas recalculadas.");
+      toast.success("Compra atualizada.");
       setOpen(false);
       qc.invalidateQueries();
     },
@@ -194,20 +216,18 @@ export function EditarCompraDialog({
           </div>
           <div className="grid gap-2">
             <Label>Responsável pela compra</Label>
-            {temRateio ? (
-              <p className="text-xs text-muted-foreground">
-                Esta compra é rateada entre vários responsáveis — o rateio é mantido.
-              </p>
-            ) : (
               <Select value={responsavelId} onValueChange={setResponsavelId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger aria-label="Responsável pela compra"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
+                  {temRateio ? <SelectItem value="manter-rateio">Manter divisão atual</SelectItem> : null}
                   {responsaveis.map((r) => (
                     <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
+            {temRateio && responsavelId !== "manter-rateio" ? (
+              <p className="text-xs text-muted-foreground">Ao salvar, a divisão atual será removida e o valor inteiro ficará com este responsável.</p>
+            ) : null}
           </div>
           <div className="grid gap-2 sm:col-span-2">
             <Label>Observação</Label>
