@@ -1,4 +1,5 @@
 import { parseValor } from "@/lib/finance";
+import { resolveResponsabilidade } from "@/lib/responsabilidade";
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
@@ -67,8 +68,8 @@ export function EditarCompraDialog({
       if (!cartao) throw new Error("Selecione o cartão.");
       if (!descricao.trim()) throw new Error("Informe a descrição.");
       if (valorNum <= 0) throw new Error("Informe o valor.");
-      const manterRateio = temRateio && responsavelId === "manter-rateio";
-      const responsavelFinal = manterRateio ? compra.responsavel_id : responsavelId || null;
+      const responsabilidade = resolveResponsabilidade(temRateio, responsavelId, compra.responsavel_id);
+      const responsavelFinal = responsabilidade.responsavelCompra;
 
       const { data: upd, error } = await supabase
         .from("compras")
@@ -90,7 +91,7 @@ export function EditarCompraDialog({
       if (!upd || upd.length === 0)
         throw new Error("Nada foi salvo: sua conta não tem permissão para editar esta compra.");
 
-      if (temRateio && !manterRateio) {
+      if (responsabilidade.removerRateio) {
         const { error: rateioErr } = await supabase.from("rateios").delete().eq("compra_id", compra.id);
         if (rateioErr) throw new Error(rateioErr.message);
       }
@@ -104,7 +105,7 @@ export function EditarCompraDialog({
       if (mesmasParcelas) {
         const { error: parcelasErr } = await supabase.from("parcelas").update({
           categoria_id: categoriaId || null,
-          responsavel_id: manterRateio ? null : responsavelFinal,
+          responsavel_id: responsabilidade.responsavelParcela,
         }).eq("compra_id", compra.id);
         if (parcelasErr) throw new Error(parcelasErr.message);
         return;
@@ -119,7 +120,7 @@ export function EditarCompraDialog({
           compra_id: compra.id,
           cartao_id: cartao.id,
           categoria_id: categoriaId || null,
-          responsavel_id: manterRateio ? null : responsavelFinal,
+          responsavel_id: responsabilidade.responsavelParcela,
         })),
       );
       if (insErr) throw new Error(insErr.message);
