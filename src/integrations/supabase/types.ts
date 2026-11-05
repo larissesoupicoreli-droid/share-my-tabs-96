@@ -250,6 +250,41 @@ export type Database = {
           },
         ]
       }
+      fatura_pagamentos: {
+        Row: {
+          cartao_id: string
+          created_at: string
+          created_by: string
+          data_pagamento: string
+          id: string
+          mes_referencia: string
+        }
+        Insert: {
+          cartao_id: string
+          created_at?: string
+          created_by?: string
+          data_pagamento?: string
+          id?: string
+          mes_referencia: string
+        }
+        Update: {
+          cartao_id?: string
+          created_at?: string
+          created_by?: string
+          data_pagamento?: string
+          id?: string
+          mes_referencia?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fatura_pagamentos_cartao_id_fkey"
+            columns: ["cartao_id"]
+            isOneToOne: false
+            referencedRelation: "cartoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gasto_categorias: {
         Row: {
           created_at: string
