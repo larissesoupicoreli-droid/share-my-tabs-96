@@ -59,6 +59,7 @@ function GastosPage() {
     if (!perfilLoading && perfil && !isLarisse) navigate({ to: "/" });
   }, [perfilLoading, perfil, isLarisse, navigate]);
 
+  const qcFatura = useQueryClient();
   const { data: gastos = [] } = useQuery(gastosQuery);
   const { data: categorias = [] } = useQuery(gastoCategoriasQuery);
   const { data: parcelasAll = [] } = useQuery(parcelasQuery);
@@ -110,6 +111,7 @@ function GastosPage() {
     );
     return cartoes
       .map((c) => ({
+        id: c.id,
         nome: c.nome,
         total: sharesLarisse
           .filter((s) => s.parcela.cartao_id === c.id)
@@ -119,6 +121,27 @@ function GastosPage() {
   }, [parcelasAll, compras, rateios, cartoes, mes, larisseId]);
 
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
+  const { data: faturasPagas = [] } = useQuery({
+    queryKey: ["fatura_pagamentos"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("fatura_pagamentos").select("id,cartao_id,mes_referencia,data_pagamento");
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  });
+  const pagoDe = (cartaoId: string) =>
+    faturasPagas.find((f) => f.cartao_id === cartaoId && f.mes_referencia.slice(0, 7) === mes.slice(0, 7));
+  const toggleFatura = useMutation({
+    mutationFn: async (cartaoId: string) => {
+      const atual = pagoDe(cartaoId);
+      const { error } = atual
+        ? await supabase.from("fatura_pagamentos").delete().eq("id", atual.id)
+        : await supabase.from("fatura_pagamentos").insert({ cartao_id: cartaoId, mes_referencia: mes.slice(0, 7) + "-01" });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => qcFatura.invalidateQueries({ queryKey: ["fatura_pagamentos"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
   const hojeStr = new Date().toISOString().slice(0, 10);
   const carroMes = carroParcelas.filter((p) => p.data_vencimento.slice(0, 7) === mes.slice(0, 7));
   const totalCarro = carroMes.reduce((s, p) => s + Number(p.valor_previsto), 0);
@@ -452,10 +475,21 @@ function GastosPage() {
               <span className="num font-medium">{money(totalFora)}</span>
             </div>
             {porCartao.map((c) => (
-              <div key={c.nome} className="flex justify-between text-muted-foreground">
-                <span className="pl-3">{c.nome}</span>
+              <label key={c.id} className="flex cursor-pointer items-center justify-between gap-2 text-muted-foreground">
+                <span className="flex items-center gap-2 pl-3">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-primary"
+                    checked={!!pagoDe(c.id)}
+                    onChange={() => toggleFatura.mutate(c.id)}
+                  />
+                  <span className={pagoDe(c.id) ? "line-through" : ""}>{c.nome}</span>
+                  {pagoDe(c.id) ? (
+                    <span className="text-xs text-primary">pago em {dateLabel(pagoDe(c.id)!.data_pagamento)}</span>
+                  ) : null}
+                </span>
                 <span className="num">{money(c.total)}</span>
-              </div>
+              </label>
             ))}
             <div className="flex justify-between">
               <span>Total nos cartões</span>
