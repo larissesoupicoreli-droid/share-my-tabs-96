@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readAllPages } from "./readAllPages";
 import { addMonths, dueDateFor, monthKey, splitAmount } from "@/lib/finance";
 import type { PaymentMethod } from "@/lib/gastos";
 
@@ -50,13 +51,13 @@ export const carroObjetivosQuery = {
 export const carroParcelasQuery = {
   queryKey: ["carro_parcelas"],
   queryFn: async () =>
-    unwrap<CarroParcela[]>(
-      await supabase
+    readAllPages<CarroParcela>((from, to) =>
+      supabase
         .from("carro_parcelas")
         .select(
           "id,objetivo_id,numero,total,valor_previsto,data_vencimento,pago,data_pagamento,forma_pagamento,observacao",
         )
-        .order("numero"),
+        .order("numero").order("id").range(from, to),
     ),
 };
 

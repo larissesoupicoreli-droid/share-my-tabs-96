@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readAllPages } from "./readAllPages";
 
 export type PaymentMethod = "pix" | "debito" | "dinheiro" | "boleto" | "transferencia" | "outros";
 
@@ -63,10 +64,10 @@ export const gastoCategoriasQuery = {
 export const gastosQuery = {
   queryKey: ["gastos"],
   queryFn: async () =>
-    unwrap<Gasto[]>(
-      await supabase
+    readAllPages<Gasto>((from, to) =>
+      supabase
         .from("gastos")
         .select("id,descricao,valor,data_gasto,mes_referencia,categoria_id,forma_pagamento,responsavel_id,observacao,created_by,recorrencia_id,recorrencia_numero,recorrencia_total")
-        .order("data_gasto", { ascending: true }),
+        .order("data_gasto", { ascending: true }).order("id").range(from, to),
     ),
 };

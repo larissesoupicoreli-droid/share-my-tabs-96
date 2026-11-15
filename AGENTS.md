@@ -11,3 +11,4 @@
 
 - Resolve purchase and installment responsibility through `src/lib/responsabilidade.ts` when replacing a split with a single person, so stale split rows cannot override the selected person.
 - Responsibility-only purchase edits update installments in place to preserve payment status and existing invoice dates.
+- Read growing financial datasets through `readAllPages` with a unique ID as the final ordering key, so the Data API row cap cannot truncate totals or skip equal-date rows between pages.

@@ -9,6 +9,7 @@ import { MonthPicker } from "@/components/app/MonthPicker";
 import { GastoDialog } from "@/components/app/GastoDialog";
 import { RecebivelDialog } from "@/components/app/RecebivelDialog";
 import { recebiveisQuery } from "@/lib/recebiveis";
+import { readAllPages } from "@/lib/readAllPages";
 import { carroParcelasQuery, parcelaStatus } from "@/lib/carro";
 import { Link } from "@tanstack/react-router";
 import { cartoesQuery, comprasQuery, parcelasQuery, rateiosQuery, responsaveisQuery, shareRows } from "@/lib/data";
@@ -40,6 +41,8 @@ export const Route = createFileRoute("/gastos")({
       },
       { property: "og:title", content: "Gastos do mês fora do cartão" },
       { property: "og:description", content: "Controle mensal de gastos fora do cartão com fechamento automático." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: GastosPage,
@@ -123,11 +126,8 @@ function GastosPage() {
   const totalCartoes = porCartao.reduce((s, c) => s + c.total, 0);
   const { data: faturasPagas = [] } = useQuery({
     queryKey: ["fatura_pagamentos"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("fatura_pagamentos").select("id,cartao_id,mes_referencia,data_pagamento");
-      if (error) throw new Error(error.message);
-      return data ?? [];
-    },
+    queryFn: async () => readAllPages<{ id: string; cartao_id: string; mes_referencia: string; data_pagamento: string }>((from, to) =>
+      supabase.from("fatura_pagamentos").select("id,cartao_id,mes_referencia,data_pagamento").order("id").range(from, to)),
   });
   const pagoDe = (cartaoId: string) =>
     faturasPagas.find((f) => f.cartao_id === cartaoId && f.mes_referencia.slice(0, 7) === mes.slice(0, 7));
