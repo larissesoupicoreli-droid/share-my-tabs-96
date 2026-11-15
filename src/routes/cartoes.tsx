@@ -152,6 +152,8 @@ export const Route = createFileRoute("/cartoes")({
       { name: "description", content: "Cadastre os cartões da família com titular, limite, dia de fechamento e vencimento." },
       { property: "og:title", content: "Cartões — titular, limite e fechamento" },
       { property: "og:description", content: "Cartões da família com titular, limite e datas de fechamento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CartoesPage,

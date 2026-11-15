@@ -26,6 +26,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:title", content: "Dashboard — Controle de Cartões da Família" },
       { property: "og:description", content: "Total das faturas, gastos por responsável, categoria e cartão." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,

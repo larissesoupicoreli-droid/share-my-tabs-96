@@ -17,6 +17,8 @@ export const Route = createFileRoute("/meu-financeiro")({
       { name: "description", content: "Área pessoal: total do mês, parcelas, recorrentes e o que será lançado nos próximos meses." },
       { property: "og:title", content: "Meu financeiro — minhas compras e parcelas" },
       { property: "og:description", content: "Total do mês, parcelas e compromissos futuros da pessoa." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: MeuFinanceiro,

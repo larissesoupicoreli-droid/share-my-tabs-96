@@ -22,6 +22,8 @@ export const Route = createFileRoute("/futuro")({
       { name: "description", content: "Veja quanto já está comprometido nos próximos meses por cartão, responsável e categoria." },
       { property: "og:title", content: "Parcelas futuras — comprometimento dos próximos meses" },
       { property: "og:description", content: "Comprometimento futuro por cartão, responsável e categoria." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: FuturoPage,

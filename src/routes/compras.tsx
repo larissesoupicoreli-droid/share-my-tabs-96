@@ -32,6 +32,8 @@ export const Route = createFileRoute("/compras")({
       { name: "description", content: "Lista das compras à vista, parceladas e recorrentes do mês, com responsável, cartão, categoria e status de pagamento." },
       { property: "og:title", content: "Compras e parcelas do mês" },
       { property: "og:description", content: "Compras à vista, parceladas e recorrentes com responsável e status." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ComprasPage,
