@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readAllPages } from "./readAllPages";
 import { installmentShares, type InstallmentStatus, type PurchaseType } from "./finance";
 
 export type Responsavel = { id: string; nome: string; cor: string; ativo: boolean };
@@ -67,18 +68,18 @@ export const cartoesQuery = {
 export const comprasQuery = {
   queryKey: ["compras"],
   queryFn: async () =>
-    unwrap<Compra[]>(await supabase.from("compras").select("*").order("data_compra", { ascending: false })),
+    readAllPages<Compra>((from, to) => supabase.from("compras").select("*").order("data_compra", { ascending: false }).order("id").range(from, to)),
 };
 
 export const parcelasQuery = {
   queryKey: ["parcelas"],
   queryFn: async () =>
-    unwrap<Parcela[]>(await supabase.from("parcelas").select("*").order("mes_referencia")),
+    readAllPages<Parcela>((from, to) => supabase.from("parcelas").select("*").order("mes_referencia").order("id").range(from, to)),
 };
 
 export const rateiosQuery = {
   queryKey: ["rateios"],
-  queryFn: async () => unwrap<Rateio[]>(await supabase.from("rateios").select("*")),
+  queryFn: async () => readAllPages<Rateio>((from, to) => supabase.from("rateios").select("*").order("id").range(from, to)),
 };
 
 /** Explode as parcelas em "quem deve pagar quanto", já aplicando rateio. */

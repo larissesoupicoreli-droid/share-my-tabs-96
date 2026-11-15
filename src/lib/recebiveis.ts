@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readAllPages } from "./readAllPages";
 
 export type RecebivelStatus = "a_receber" | "recebido";
 
@@ -19,12 +20,8 @@ export type Recebivel = {
 
 export const recebiveisQuery = {
   queryKey: ["recebiveis"],
-  queryFn: async (): Promise<Recebivel[]> => {
-    const { data, error } = await supabase
+  queryFn: async (): Promise<Recebivel[]> => readAllPages<Recebivel>((from, to) => supabase
       .from("recebiveis")
       .select("id,descricao,valor,data_prevista,mes_referencia,status,data_recebimento,observacao,created_by,recorrencia_id,recorrencia_numero,recorrencia_total")
-      .order("data_prevista", { ascending: true });
-    if (error) throw new Error(error.message);
-    return (data ?? []) as Recebivel[];
-  },
+      .order("data_prevista", { ascending: true }).order("id").range(from, to)),
 };

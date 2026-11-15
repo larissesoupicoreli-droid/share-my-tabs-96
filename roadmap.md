@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Corrigir leitura completa das parcelas e demais registros financeiros
+- [ ] Validar totais e sincronização de gastos, receitas e cartões na conta da Larisse
+
 - [x] Separar data da compra do mês/fatura de referência (campo próprio, editável)
 - [x] Adicionar "Rolê" como opção de responsável ao salvar a compra
 - [x] Permitir criar gastos recorrentes por uma quantidade definida de meses
