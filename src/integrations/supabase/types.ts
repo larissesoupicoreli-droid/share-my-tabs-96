@@ -285,6 +285,18 @@ export type Database = {
           },
         ]
       }
+      finance_read_members: {
+        Row: {
+          user_id: string
+        }
+        Insert: {
+          user_id: string
+        }
+        Update: {
+          user_id?: string
+        }
+        Relationships: []
+      }
       gasto_categorias: {
         Row: {
           created_at: string
@@ -621,6 +633,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_read_shared_finances: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
