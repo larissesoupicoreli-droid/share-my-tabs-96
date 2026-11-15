@@ -34,6 +34,8 @@ export const Route = createFileRoute("/fatura")({
       { name: "description", content: "Divisão da fatura do cartão por responsável: quanto Larisse, Matheus, Mãe e outros devem pagar no fechamento." },
       { property: "og:title", content: "Quanto cada um deve pagar na fatura" },
       { property: "og:description", content: "Divisão da fatura do cartão por responsável no fechamento do mês." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: FaturaPage,

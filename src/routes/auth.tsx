@@ -13,6 +13,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Acesse o controle financeiro familiar de cartões, parcelas e divisão de faturas." },
       { property: "og:title", content: "Entrar — Controle de Cartões da Família" },
       { property: "og:description", content: "Acesse o controle financeiro familiar de cartões e faturas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
